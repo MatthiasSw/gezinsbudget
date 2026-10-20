@@ -109,7 +109,7 @@ describe('the default rules', () => {
     [{ counterpartyName: 'Luminus' }, 'Energie'],
     [{ message: 'BEDRAG VOOR DE AFBETALING VAN UW WOONKREDIET' }, 'Huur/lening'],
     [{ message: 'BANCONTACT - GELDOPNEMING - ATM0001' }, 'Contant geld'],
-    [{ counterpartyName: 'Dierapotheker.nl' }, 'Huisdieren'],
+    [{ counterpartyName: 'Dierapotheek Janssens' }, 'Huisdieren'],
     [{ message: 'Loon oktober', amountCents: 250000 }, 'Loon'],
     [{ message: 'Dubbel vakantiegeld', amountCents: 150000 }, 'Loon'],
     [{ counterpartyName: 'Groeipakket Fons' }, 'Uitkeringen & toelagen'],
