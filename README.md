@@ -21,18 +21,13 @@ Alles blijft op je eigen computer of netwerkschijf. Er is geen account, geen clo
 
 ## Installeren
 
-Gezinsbudget hoeft niet geïnstalleerd te worden. Download de nieuwste versie op de pagina [Releases](https://github.com/MatthiasSw/gezinsbudget/releases). Er zijn twee manieren om het te gebruiken.
+Gezinsbudget hoeft niet geïnstalleerd te worden. Download de nieuwste zip (`Gezinsbudget-<versie>-win.zip`) op de pagina [Releases](https://github.com/MatthiasSw/gezinsbudget/releases), pak hem uit in een map naar keuze, bijvoorbeeld op je bureaublad of op een USB-stick, en start `Gezinsbudget.exe` in die map. Wil je een snelkoppeling in het startmenu, maak dan zelf een snelkoppeling naar `Gezinsbudget.exe`.
 
-- **Eén bestand:** download `Gezinsbudget-<versie>-portable.exe` en dubbelklik erop.
-- **Zip (sneller opstarten):** download `Gezinsbudget-<versie>-win.zip`, pak de zip uit in een map naar keuze en start `Gezinsbudget.exe` in die map.
-
-Zet het bestand of de map waar je wil, bijvoorbeeld op je bureaublad of op een USB-stick. Wil je een snelkoppeling in het startmenu, maak dan zelf een snelkoppeling naar het bestand.
-
-De portable exe pakt zich bij elke start eerst uit, dat duurt enkele seconden. Intussen zie je een startscherm. De zip start in minder dan een seconde, omdat je ze maar één keer uitpakt. Je gegevens blijven in je eigen map staan, ook als je het programma vervangt door een nieuwere versie.
+Je gegevens blijven in je eigen map staan, ook als je het programma vervangt door een nieuwere versie. Pak daarvoor de nieuwe zip gewoon uit over de oude map of in een nieuwe map.
 
 Het programma is niet digitaal ondertekend. Windows kan daarom bij de eerste start "Windows heeft uw pc beschermd" tonen. Kies dan **Meer informatie** en daarna **Toch uitvoeren**.
 
-Blijft Windows het bestand blokkeren, omdat je het van internet of via e-mail kreeg, klik dan met de rechtermuisknop op het bestand en kies **Eigenschappen**. Vink onderaan op het tabblad **Algemeen** de optie **Blokkering opheffen** aan en klik op **OK**.
+Blijft Windows de zip blokkeren, omdat je hem van internet kreeg, klik dan voor het uitpakken met de rechtermuisknop op de zip en kies **Eigenschappen**. Vink onderaan op het tabblad **Algemeen** de optie **Blokkering opheffen** aan en klik op **OK**.
 
 ## Eerste stappen
 
@@ -272,7 +267,7 @@ Controleer of de transactie als interne overboeking is gemarkeerd (⇄). Dat geb
 - `npm install` installeert de afhankelijkheden.
 - `npm run dev` start het programma in ontwikkelmodus (in de map met `package.json`).
 - `npm test` draait de unit tests. `npm run typecheck` en `npm run lint` controleren types en stijl. `npm run build` controleert de productiebuild.
-- `npm run build:win` maakt in `release/` de portable exe en een zip met het uitgepakte programma. Het startscherm van de exe (`resources/splash.bmp`) maak je met `npx electron scripts/makeSplash.mjs`.
+- `npm run build:win` maakt in `release/` een zip met het uitgepakte programma.
 
 Start het programma niet vanuit een terminal waar de omgevingsvariabele `ELECTRON_RUN_AS_NODE` staat. Dan krijg je de fout `Cannot read properties of undefined (reading 'whenReady')`. Verwijder de variabele voor die terminal.
 
