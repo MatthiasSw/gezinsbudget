@@ -21,7 +21,7 @@ Alles blijft op je eigen computer of netwerkschijf. Er is geen account, geen clo
 
 ## Installeren
 
-Gezinsbudget hoeft niet geïnstalleerd te worden. Er zijn twee manieren om het te gebruiken.
+Gezinsbudget hoeft niet geïnstalleerd te worden. Download de nieuwste versie op de pagina [Releases](https://github.com/MatthiasSw/gezinsbudget/releases). Er zijn twee manieren om het te gebruiken.
 
 - **Eén bestand:** download `Gezinsbudget-<versie>-portable.exe` en dubbelklik erop.
 - **Zip (sneller opstarten):** download `Gezinsbudget-<versie>-win.zip`, pak de zip uit in een map naar keuze en start `Gezinsbudget.exe` in die map.
