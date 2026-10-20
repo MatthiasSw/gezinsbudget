@@ -83,7 +83,11 @@ export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.
       <main>
         <h1 className="pageTitle">{pageTitles[page]}</h1>
         {page === 'transactions' && (
-          <TransactionsView dataRevision={dataRevision} initialFilters={drillDown} />
+          <TransactionsView
+            dataRevision={dataRevision}
+            initialFilters={drillDown}
+            onImported={markDataChanged}
+          />
         )}
         {page === 'overview' && (
           <OverviewView dataRevision={dataRevision} onOpenTransactions={openTransactions} />

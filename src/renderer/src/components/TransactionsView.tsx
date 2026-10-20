@@ -12,6 +12,7 @@ import { defaultSort, nextSort, sortTransactions, type SortKey } from '../transa
 import { useRuleOffer } from '../hooks/useRuleOffer'
 import { CategorySelect } from './CategorySelect'
 import { ExportMenu } from './ExportMenu'
+import { FirstImportPrompt } from './FirstImportPrompt'
 import { FilterBar, type Filters } from './FilterBar'
 import { Pagination } from './Pagination'
 import { RuleOfferBanner } from './RuleOfferBanner'
@@ -22,6 +23,7 @@ const pageSizeMinimum = pageSizeOptions[0]
 
 type TransactionsViewProps = {
   dataRevision: number
+  onImported: () => void
   initialFilters?: Partial<Filters>
 }
 
@@ -43,6 +45,7 @@ function toRef(transaction: Transaction): TransactionRef {
 
 export function TransactionsView({
   dataRevision,
+  onImported,
   initialFilters
 }: TransactionsViewProps): React.JSX.Element {
   const [filters, setFilters] = useState<Filters>(() => ({
@@ -73,6 +76,8 @@ export function TransactionsView({
   const transactions = useAsyncData(loadTransactions, dataRevision)
   const categories = useAsyncData(api.categories.get, dataRevision)
   const settings = useAsyncData(api.settings.get, dataRevision)
+  const years = useAsyncData(api.overview.years, dataRevision)
+  const nothingImported = years.state.status === 'ready' && years.state.data.length === 0
 
   const rows = transactions.state.status === 'ready' ? transactions.state.data : []
 
@@ -123,6 +128,8 @@ export function TransactionsView({
     }
     setSelectedIds(next)
   }
+
+  if (nothingImported) return <FirstImportPrompt onImported={onImported} />
 
   return (
     <section>

@@ -12,15 +12,16 @@ function pluralize(count: number, singular: string, plural: string): string {
 
 type ImportPanelProps = {
   onImported: () => void
+  variant?: 'bar' | 'primary'
 }
 
-export function ImportPanel({ onImported }: ImportPanelProps): React.JSX.Element {
+export function ImportPanel({ onImported, variant = 'bar' }: ImportPanelProps): React.JSX.Element {
   const { state, start, addAccounts, confirm, cancel, close } = useImportFlow(onImported)
 
   switch (state.step) {
     case 'idle':
       return (
-        <button className="onBar" onClick={start}>
+        <button className={variant === 'bar' ? 'onBar' : undefined} onClick={start}>
           <ImportIcon />
           Bankbestand importeren
         </button>
