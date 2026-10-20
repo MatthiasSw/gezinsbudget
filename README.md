@@ -11,11 +11,8 @@ Alles blijft op je eigen computer of netwerkschijf. Er is geen account, geen clo
 - [Een bankbestand importeren](#een-bankbestand-importeren)
 - [Transacties bekijken en categoriseren](#transacties-bekijken-en-categoriseren)
 - [Regels: automatisch categoriseren](#regels-automatisch-categoriseren)
-- [Overzicht en grafieken](#overzicht-en-grafieken)
 - [Terugkerende uitgaven](#terugkerende-uitgaven)
-- [Interessant](#interessant)
 - [Instellingen](#instellingen)
-- [Samen gebruiken](#samen-gebruiken)
 - [Waar staan mijn gegevens?](#waar-staan-mijn-gegevens)
 - [Problemen oplossen](#problemen-oplossen)
 
