@@ -1,0 +1,8 @@
+// Configures Vitest to run unit tests in a plain Node environment.
+import { resolve } from 'path'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  resolve: { alias: { '@shared': resolve('src/shared'), '@core': resolve('src/core') } },
+  test: { environment: 'node', include: ['src/**/*.test.ts', 'tests/**/*.test.ts'] }
+})

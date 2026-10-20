@@ -1,0 +1,16 @@
+Boekingsdatum vanaf;01/01/2026
+Boekingsdatum tot en met;31/01/2026
+Bedrag vanaf;
+Bedrag tot en met;
+Rekeninguittrekselnummer vanaf;
+Rekeninguittrekselnummer tot en met;
+Mededeling;
+Naam tegenpartij bevat;
+Rekening tegenpartij;
+Laatste saldo;100,00 EUR
+Datum/uur van het laatste saldo;31/01/2026 10:00:00
+;
+Rekening;Boekingsdatum;Rekeninguittrekselnummer;Transactienummer;Rekening tegenpartij;Naam tegenpartij bevat;Straat en nummer;Postcode en gemeente;Transactie;Valutadatum;Bedrag;Devies;BIC;Landcode;Mededelingen
+BE68 5390 0754 7034;18/01/2026;;;;Parkeer Centrum;;9000 Gent;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01;18/01/2026;-2,50;EUR;;BE;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01
+BE68 5390 0754 7034;18/01/2026;;;;Parkeer Centrum;;9000 Gent;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01;18/01/2026;-2,50;EUR;;BE;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01
+BE68 5390 0754 7034;28/01/2026;;;;Supermarkt Groenhof;;9000 Gent;DEBITMASTERCARD-BETALING 27/01 Supermarkt Groenhof Gent BE 45,30 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100002 VAL. 27-01;28/01/2026;-45,30;EUR;;BE;DEBITMASTERCARD-BETALING 27/01 Supermarkt Groenhof Gent BE 45,30 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100002 VAL. 27-01

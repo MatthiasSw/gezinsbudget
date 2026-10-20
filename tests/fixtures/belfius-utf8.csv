@@ -1,0 +1,21 @@
+Boekingsdatum vanaf;01/01/2026
+Boekingsdatum tot en met;31/01/2026
+Bedrag vanaf;
+Bedrag tot en met;
+Rekeninguittrekselnummer vanaf;
+Rekeninguittrekselnummer tot en met;
+Mededeling;
+Naam tegenpartij bevat;
+Rekening tegenpartij;
+Laatste saldo;1.234,56 EUR
+Datum/uur van het laatste saldo;31/01/2026 10:00:00
+;
+Rekening;Boekingsdatum;Rekeninguittrekselnummer;Transactienummer;Rekening tegenpartij;Naam tegenpartij bevat;Straat en nummer;Postcode en gemeente;Transactie;Valutadatum;Bedrag;Devies;BIC;Landcode;Mededelingen
+BE68 5390 0754 7034;28/01/2026;;;;Supermarkt Groenhof;;9000 Gent;DEBITMASTERCARD-BETALING 27/01 Supermarkt Groenhof Gent BE 45,30 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100002 VAL. 27-01;28/01/2026;-45,30;EUR;;BE;DEBITMASTERCARD-BETALING 27/01 Supermarkt Groenhof Gent BE 45,30 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100002 VAL. 27-01
+BE68 5390 0754 7034;27/01/2026;;;;Café Zoë;;9000 Gent;DEBITMASTERCARD-BETALING 26/01 Café Zoë Gent BE 8,40 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100003 VAL. 26-01;27/01/2026;-8,40;EUR;;BE;DEBITMASTERCARD-BETALING 26/01 Café Zoë Gent BE 8,40 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100003 VAL. 26-01
+BE68 5390 0754 7034;26/01/2026;;;BE62 5100 0754 7061;Zonnebloem NV;;;STORTING VAN BE62 5100 0754 7061 Zonnebloem NV NAAR BE68 5390 0754 7034 Loon januari;26/01/2026;2345,67;EUR;GEBABEBB;;Loon januari
+BE68 5390 0754 7034;20/01/2026;;;;Boulangerie Éclair;;9000 Gent;BANCONTACT-AANKOOP - Boulangerie Éclair Gent BE 12,10 EUR;20/01/2026;-12,10;EUR;;BE;BANCONTACT-AANKOOP - Boulangerie Éclair Gent BE 12,10 EUR
+BE68 5390 0754 7034;15/01/2026;;;BE43 0689 9999 9501;Crèche Ïris;;;OVERSCHRIJVING BELFIUS MOBILE NAAR BE43 0689 9999 9501 Crèche Ïris Opvang december;15/01/2026;-310,00;EUR;GKCCBEBB;;Opvang december
+BE68 5390 0754 7034;10/01/2026;;;BE62 5100 0754 7061;Jan Peeters;;;INSTANT OVERSCHRIJVING BELFIUS MOBILE NAAR BE62 5100 0754 7061 Jan Peeters;10/01/2026;-25,00;EUR;GEBABEBB;;
+BE68 5390 0754 7034;05/01/2026;;;BE43 0689 9999 9501;Energie Noord;;;DOORLOPENDE BETALINGSOPDRACHT 12345678 NAAR BE43 0689 9999 9501 Energie Noord Voorschot energie;05/01/2026;-120,00;EUR;KREDBEBB;;Voorschot energie
+BE68 5390 0754 7034;02/01/2026;;;;Garage Vermeulen;;9000 Gent;BANCONTACT-AANKOOP - Garage Vermeulen Gent BE 1234,56 EUR;01/01/2026;-1234,56;EUR;;BE;BANCONTACT-AANKOOP - Garage Vermeulen Gent BE 1234,56 EUR

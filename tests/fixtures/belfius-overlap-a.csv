@@ -1,0 +1,17 @@
+Boekingsdatum vanaf;01/01/2026
+Boekingsdatum tot en met;20/01/2026
+Bedrag vanaf;
+Bedrag tot en met;
+Rekeninguittrekselnummer vanaf;
+Rekeninguittrekselnummer tot en met;
+Mededeling;
+Naam tegenpartij bevat;
+Rekening tegenpartij;
+Laatste saldo;500,00 EUR
+Datum/uur van het laatste saldo;20/01/2026 10:00:00
+;
+Rekening;Boekingsdatum;Rekeninguittrekselnummer;Transactienummer;Rekening tegenpartij;Naam tegenpartij bevat;Straat en nummer;Postcode en gemeente;Transactie;Valutadatum;Bedrag;Devies;BIC;Landcode;Mededelingen
+BE68 5390 0754 7034;20/01/2026;;;;Boulangerie Éclair;;9000 Gent;BANCONTACT-AANKOOP - Boulangerie Éclair Gent BE 12,10 EUR;20/01/2026;-12,10;EUR;;BE;BANCONTACT-AANKOOP - Boulangerie Éclair Gent BE 12,10 EUR
+BE68 5390 0754 7034;18/01/2026;;;;Parkeer Centrum;;9000 Gent;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01;18/01/2026;-2,50;EUR;;BE;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01
+BE68 5390 0754 7034;18/01/2026;;;;Parkeer Centrum;;9000 Gent;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01;18/01/2026;-2,50;EUR;;BE;DEBITMASTERCARD-BETALING 17/01 Parkeer Centrum Gent BE 2,50 EUR KAART NR 1234 5678 9012 3456 - Test Gebruiker REF. : 0101A1A100001 VAL. 17-01
+BE68 5390 0754 7034;05/01/2026;;;BE43 0689 9999 9501;Energie Noord;;;DOORLOPENDE BETALINGSOPDRACHT 12345678 NAAR BE43 0689 9999 9501 Energie Noord Voorschot energie;05/01/2026;-120,00;EUR;KREDBEBB;;Voorschot energie
