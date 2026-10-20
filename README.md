@@ -21,14 +21,14 @@ Alles blijft op je eigen computer of netwerkschijf. Er is geen account, geen clo
 
 ## Installeren
 
-Gezinsbudget hoeft niet geïnstalleerd te worden. Download de nieuwste zip (`Gezinsbudget-<versie>-win.zip`) op de pagina [Releases](https://github.com/MatthiasSw/gezinsbudget/releases), pak hem uit in een map naar keuze, bijvoorbeeld op je bureaublad, en start `Gezinsbudget.exe` in die map. 
+Gezinsbudget hoeft niet geïnstalleerd te worden. Download de nieuwste zip (`Gezinsbudget-<versie>-win.zip`) op de pagina [Releases](https://github.com/MatthiasSw/gezinsbudget/releases), pak hem uit in een map naar keuze, bijvoorbeeld op je bureaublad, en start `Gezinsbudget.exe` in die map.
 
 Je gegevens blijven in je eigen map staan, ook als je het programma vervangt door een nieuwere versie. Pak daarvoor de nieuwe zip gewoon uit over de oude map of in een nieuwe map.
 
 ## Eerste stappen
 
-1. Exporteer transacties van je Belfius webapp in csv. (zie [Belfius website](https://www.belfius.be/webapps/nl/selfcare/belfius/rekeningen/saldo-historiek/Hoe-kan-ik-mijn-historiek-in-Belfius-Direct-Net-exporteren-naar-een-CSV-bestand-(Excel))).
-2. Start Gezinsbudget. 
+1. Exporteer transacties van je Belfius webapp in csv. (zie [Belfius website](<https://www.belfius.be/webapps/nl/selfcare/belfius/rekeningen/saldo-historiek/Hoe-kan-ik-mijn-historiek-in-Belfius-Direct-Net-exporteren-naar-een-CSV-bestand-(Excel)>)).
+2. Start Gezinsbudget.
 3. Klik rechtsboven op **Bankbestand importeren** en kies het bestand dat je uit Belfius exporteerde.
 4. Geef je rekening de eerste keer een naam, bijvoorbeeld "Zichtrekening".
 5. Controleer het importvoorbeeld en klik op **Importeren**.
@@ -38,8 +38,10 @@ De eerste keer maakt het programma zelf een gegevensmap aan, zodat je niets hoef
 
 ## Een bankbestand importeren
 
+Zolang je nog niets hebt geïmporteerd, toont het tabblad **Transacties** de melding **Importeer je eerste banktransacties** met een knop **Bankbestand importeren**. Die knop doet hetzelfde als de knop rechtsboven.
+
 Exporteer in Belfius de transacties van je rekening als **CSV-bestand** en bewaar het waar je wil. Gezinsbudget herkent het formaat automatisch, ook met accenten in namen.
-(zie [Belfius website](https://www.belfius.be/webapps/nl/selfcare/belfius/rekeningen/saldo-historiek/Hoe-kan-ik-mijn-historiek-in-Belfius-Direct-Net-exporteren-naar-een-CSV-bestand-(Excel)))
+(zie [Belfius website](<https://www.belfius.be/webapps/nl/selfcare/belfius/rekeningen/saldo-historiek/Hoe-kan-ik-mijn-historiek-in-Belfius-Direct-Net-exporteren-naar-een-CSV-bestand-(Excel)>))
 
 Per rekening exporteer je één bestand. Heb je meerdere rekeningen, importeer dan elk bestand apart.
 
@@ -111,7 +113,6 @@ Ga naar **Instellingen** en kies het tabblad **Regels**. Bovenaan staat **Mijn r
 - **Verwijderen:** vraagt eerst om bevestiging.
 
 Nieuwe transacties krijgen bij elke import automatisch de categorie van de eerste regel die past. **Een categorie die je zelf koos, blijft altijd staan.** Verwijder je een regel en pas je de regels opnieuw toe, dan verdwijnt de categorie die enkel door die regel was gezet.
-
 
 ## Instellingen
 
@@ -193,4 +194,3 @@ Controleer of de transactie als interne overboeking is gemarkeerd (⇄). Dat geb
 - `npm run build:win` maakt in `release/` een zip met het uitgepakte programma.
 
 Start het programma niet vanuit een terminal waar de omgevingsvariabele `ELECTRON_RUN_AS_NODE` staat. Dan krijg je de fout `Cannot read properties of undefined (reading 'whenReady')`. Verwijder de variabele voor die terminal.
-
