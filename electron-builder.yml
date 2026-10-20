@@ -13,10 +13,5 @@ artifactName: Gezinsbudget-${version}-win.${ext}
 win:
   icon: resources/icon.ico
   target:
-    - target: portable
-      arch: x64
     - target: zip
       arch: x64
-portable:
-  splashImage: resources/splash.bmp
-  artifactName: Gezinsbudget-${version}-portable.${ext}
