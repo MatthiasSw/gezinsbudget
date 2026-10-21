@@ -1,6 +1,6 @@
 {
   "name": "gezinsbudget",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Household budget desktop app",
   "private": true,
   "main": "./out/main/index.js",
