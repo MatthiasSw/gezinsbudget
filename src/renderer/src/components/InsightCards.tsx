@@ -64,6 +64,8 @@ export function TopExpensesCard({
                 <td>
                   {expense.counterparty || '–'}
                   <span className="muted detail">
+                    {expense.count > 1 &&
+                      `${pluralize(expense.count, 'betaling', 'betalingen')}, grootste van `}
                     {formatBelgianDate(expense.bookingDate)}
                     {expense.categoryId && ` · ${categoryName(expense.categoryId, categories)}`}
                   </span>

@@ -47,6 +47,22 @@ describe('recurring service', () => {
     expect(result[0]).toMatchObject({ counterparty: 'Streamdienst', occurrences: 3, active: true })
   })
 
+  it('ignores expenses in a category that does not count in the totals', async () => {
+    await repository.saveCategories([
+      { id: 'work', name: 'Onkosten werkgever', kind: 'expense', excludedFromTotals: true }
+    ])
+    for (const month of ['2026-01', '2026-02', '2026-03']) {
+      await repository.saveMonth(month, [
+        { ...tx(`x-${month}`, `${month}-05`), categoryId: 'work' }
+      ])
+    }
+    const service = createRecurringService({
+      getRepository: async () => repository,
+      today: () => '2026-03-20'
+    })
+    expect(await service.get()).toEqual([])
+  })
+
   it('returns nothing without enough history', async () => {
     const empty = await mkdtemp(join(tmpdir(), 'recurring-empty-'))
     try {

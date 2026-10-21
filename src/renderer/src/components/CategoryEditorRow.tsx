@@ -1,4 +1,4 @@
-// One editable row in the category manager: icon, name, parent and delete.
+// One editable row in the category manager: icon, name, parent, whether it counts in the totals, and delete.
 import { categoryIcon } from '@shared/categoryIcons'
 import { descendantIds, type TreeGuide } from '@shared/categoryTree'
 import type { Category } from '@shared/types'
@@ -11,6 +11,13 @@ type CategoryEditorRowProps = {
   categories: Category[]
   onChange: (changed: Category) => void
   onDelete: (category: Category) => void
+}
+
+// The flag is stored only when set, so categories that count normally stay unchanged on disk.
+function withExclusion(category: Category, excluded: boolean): Category {
+  const { excludedFromTotals: previous, ...rest } = category
+  void previous
+  return excluded ? { ...rest, excludedFromTotals: true } : rest
 }
 
 export function CategoryEditorRow({
@@ -69,6 +76,14 @@ export function CategoryEditorRow({
             </option>
           ))}
         </select>
+      </td>
+      <td>
+        <input
+          type="checkbox"
+          aria-label={`${category.name} telt niet mee in totalen`}
+          checked={category.excludedFromTotals ?? false}
+          onChange={(event) => onChange(withExclusion(category, event.target.checked))}
+        />
       </td>
       <td>
         <button

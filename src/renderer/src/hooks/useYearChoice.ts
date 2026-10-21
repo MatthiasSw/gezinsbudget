@@ -1,22 +1,24 @@
-// Loads the years that have transactions and keeps the year chosen by the user.
-import { useState } from 'react'
+// Loads the years that have transactions and turns the chosen year into the year to show.
 import { api } from '../api'
 import { selectedYear, yearOptions } from '../yearChoice'
 import { useAsyncData } from './useAsyncData'
+import type { YearAccountSelection } from './useYearAccountSelection'
 
-export function useYearChoice(dataRevision: number): {
+export function useYearChoice(
+  dataRevision: number,
+  { chosenYear, setChosenYear }: YearAccountSelection
+): {
   year: number
   years: number[]
   setYear: (year: number) => void
 } {
   const { state } = useAsyncData(api.overview.years, dataRevision)
-  const [chosen, setChosen] = useState<number | null>(null)
   const currentYear = new Date().getFullYear()
   const yearsWithData = state.status === 'ready' ? state.data : []
 
   return {
-    year: selectedYear(yearsWithData, chosen, currentYear),
+    year: selectedYear(yearsWithData, chosenYear, currentYear),
     years: yearOptions(yearsWithData, currentYear),
-    setYear: setChosen
+    setYear: setChosenYear
   }
 }

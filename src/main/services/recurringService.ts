@@ -1,6 +1,7 @@
 // Finds the recurring monthly expenses in all stored transactions.
 import { todayAsIso } from '@shared/periods'
 import type { RecurringSpend } from '@shared/recurringTypes'
+import { withoutExcludedCategories } from '@core/countedTransactions'
 import { detectRecurringSpend } from '@core/recurring'
 import type { GetRepository } from '../storage/repository'
 
@@ -20,7 +21,11 @@ export function createRecurringService({
   return {
     get: async () => {
       const repository = await getRepository()
-      return detectRecurringSpend(await repository.getTransactions(), today())
+      const [transactions, categories] = await Promise.all([
+        repository.getTransactions(),
+        repository.getCategories()
+      ])
+      return detectRecurringSpend(withoutExcludedCategories(transactions, categories), today())
     }
   }
 }

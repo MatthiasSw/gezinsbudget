@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   assertValidCategories,
   descendantIds,
+  excludedCategoryIds,
   findTooDeepCategory,
   flattenTree,
   treeGuides
@@ -12,6 +13,24 @@ import type { Category } from './types'
 function category(id: string, overrides: Partial<Category> = {}): Category {
   return { id, name: id.toUpperCase(), kind: 'expense', ...overrides }
 }
+
+describe('excludedCategoryIds', () => {
+  it('lists the flagged categories together with their subcategories', () => {
+    const categories = [
+      category('work', { excludedFromTotals: true }),
+      category('parking', { parentId: 'work' }),
+      category('food'),
+      category('groceries', { parentId: 'food' })
+    ]
+    expect([...excludedCategoryIds(categories)].sort()).toEqual(['parking', 'work'])
+  })
+
+  it('is empty when nothing is flagged', () => {
+    expect(
+      excludedCategoryIds([category('a'), category('b', { excludedFromTotals: false })]).size
+    ).toBe(0)
+  })
+})
 
 describe('assertValidCategories', () => {
   it('accepts a valid tree', () => {

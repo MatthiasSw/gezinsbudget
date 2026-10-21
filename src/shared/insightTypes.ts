@@ -15,6 +15,8 @@ export type TopExpense = {
   counterparty: string
   categoryId?: string
   amountCents: number
+  // How often this payment occurred in the period; more than 1 for a recurring payment, shown once.
+  count: number
 }
 
 export type TopCounterparty = {

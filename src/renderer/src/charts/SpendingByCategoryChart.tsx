@@ -1,4 +1,4 @@
-// Horizontal bars with the spending per main category for the whole year or one month.
+// Horizontal bars with the spending per main category for the whole year or one month; a click opens that category.
 import { useState } from 'react'
 import {
   Bar,
@@ -13,7 +13,7 @@ import {
 import { formatMonthLabel } from '@shared/dates'
 import { formatCents, formatCompactEuros } from '@shared/money'
 import type { OverviewTable } from '@shared/overview'
-import { ChartCard } from './ChartCard'
+import { ChartCard, type OpenChartTarget } from './ChartCard'
 import { spendingByCategory, type SpendingEntry } from './chartData'
 import { niceAxis } from './chartScale'
 import { axisTick, gridStroke, seriesColors } from './chartStyle'
@@ -25,10 +25,12 @@ const minimumHeight = 140
 
 type SpendingByCategoryChartProps = {
   overview: OverviewTable
+  onOpen: OpenChartTarget
 }
 
 export function SpendingByCategoryChart({
-  overview
+  overview,
+  onOpen
 }: SpendingByCategoryChartProps): React.JSX.Element {
   const [period, setPeriod] = useState('year')
   const [includeSubcategories, setIncludeSubcategories] = useState(false)
@@ -41,7 +43,7 @@ export function SpendingByCategoryChart({
     <ChartCard
       id={spendingSectionId}
       title="Uitgaven per categorie"
-      subtitle="Transacties zonder categorie staan niet in deze grafiek."
+      subtitle="Transacties zonder categorie staan niet in deze grafiek. Klik op een balk om de transacties te bekijken."
       controls={
         <div className="chipRow">
           <label className="inlineLabel">
@@ -116,6 +118,13 @@ export function SpendingByCategoryChart({
               barSize={18}
               radius={[0, 4, 4, 0]}
               isAnimationActive={false}
+              cursor="pointer"
+              onClick={(_, index) =>
+                onOpen({
+                  month: activePeriod === 'year' ? undefined : activePeriod,
+                  categoryId: entries[index]?.categoryId
+                })
+              }
             >
               {entries.map((entry) => (
                 <Cell key={entry.categoryId} fillOpacity={entry.depth === 0 ? 1 : 0.6} />

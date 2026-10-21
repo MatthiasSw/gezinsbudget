@@ -19,6 +19,8 @@ export type Category = {
   parentId?: string
   kind: 'income' | 'expense'
   icon?: string
+  // Transactions in this category (and its subcategories) are left out of income, expenses, charts and insights.
+  excludedFromTotals?: boolean
 }
 
 export type RuleField = 'counterpartyName' | 'message' | 'counterpartyIban' | 'anyText'

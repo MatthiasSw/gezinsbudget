@@ -88,8 +88,16 @@ main {
   padding: 8px 32px 48px;
 }
 
-.pageTitle {
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
   margin: 20px 0 4px;
+}
+
+.pageTitle {
+  margin: 0;
   font-size: 1.5rem;
 }
 
@@ -367,6 +375,11 @@ main > section,
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* The bar aligns its items at the bottom; lift the "i" to the middle of the neighbouring select. */
+.filterBar > .infoTip {
+  margin-bottom: 10px;
 }
 
 .filterBar .grow {
@@ -886,6 +899,7 @@ button.danger:hover:not(:disabled) {
   width: 16px;
   height: 16px;
   margin-left: 4px;
+  vertical-align: middle;
   border: 1px solid var(--text-soft);
   border-radius: 50%;
   color: var(--text-soft);
