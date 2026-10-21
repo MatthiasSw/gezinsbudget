@@ -48,8 +48,12 @@ describe('starter categories', () => {
 
 describe('iconChoices', () => {
   it('offers many different icons without duplicates', () => {
-    expect(iconChoices.length).toBeGreaterThan(150)
+    expect(iconChoices.length).toBeGreaterThan(250)
     expect(new Set(iconChoices).size).toBe(iconChoices.length)
+  })
+
+  it('offers honey, an animal and a food icon among the extras', () => {
+    expect(iconChoices).toEqual(expect.arrayContaining(['🍯', '🐝', '🥛']))
   })
 })
 
