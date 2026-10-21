@@ -77,6 +77,10 @@ export function ImportIcon(): React.JSX.Element {
   return <Icon paths={['M12 3v12', 'M7 10l5 5 5-5', 'M4 20h16']} />
 }
 
+export function BackIcon(): React.JSX.Element {
+  return <Icon paths={['M9 14L4 9l5-5', 'M4 9h10.5a5.5 5.5 0 0 1 0 11H11']} />
+}
+
 export function ChartsIcon(): React.JSX.Element {
   return <Icon paths={['M3 3v18h18', 'M7 15l4-5 3 3 5-7']} />
 }

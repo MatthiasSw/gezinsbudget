@@ -1,4 +1,5 @@
 // Top bar with the app name, the back button and the import entry point.
+import { BackIcon } from './icons'
 import { ImportPanel } from './ImportPanel'
 
 type TopBarProps = {
@@ -19,7 +20,7 @@ export function TopBar({ canGoBack, onBack, onImported }: TopBarProps): React.JS
         aria-label="Terug naar de vorige pagina"
         onClick={onBack}
       >
-        ←
+        <BackIcon />
       </button>
       <span className="topBarSpacer" />
       <ImportPanel onImported={onImported} />
