@@ -81,7 +81,7 @@ export const expenseCategories: StarterCategory[] = [
     children: [
       {
         name: 'Brandstof',
-        keywords: String.raw`esso|\bq8\b|total nb|lukoil|shell|texaco|gulf|dats ?24|tankstation|brandstof|tamoil|power ?oil|\bbp\b|maes|tinqo|laadpaal|oplaadpunt|allego|supercharger|fastned|blue ?corner|zunder|\bevbox\b|elektrisch laden`
+        keywords: String.raw`esso|\bq8\b|total nb|lukoil|shell|texaco|gulf|dats ?24|tankstation|brandstof|tamoil|power ?oil|\bbp\b|tinqo|laadpaal|oplaadpunt|allego|supercharger|fastned|blue ?corner|zunder|\bevbox\b|elektrisch laden`
       },
       {
         name: 'Openbaar vervoer',

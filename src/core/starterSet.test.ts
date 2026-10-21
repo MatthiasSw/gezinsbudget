@@ -168,6 +168,10 @@ describe('the default rules', () => {
   it('leaves unknown counterparties uncategorised', () => {
     expect(categoryOf({ counterpartyName: 'Jan Peeters' })).toBeUndefined()
   })
+
+  it('does not take a person with the surname Maes for a fuel station', () => {
+    expect(categoryOf({ counterpartyName: 'Antoine Maes', message: 'Honing' })).toBeUndefined()
+  })
 })
 
 describe('completing an existing set', () => {
