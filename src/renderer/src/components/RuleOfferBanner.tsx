@@ -8,6 +8,7 @@ import { ReapplyRules } from './ReapplyRules'
 type RuleOfferBannerProps = {
   offer: RuleOffer
   categoryName: string
+  onApplied: () => void
   onDismiss: () => void
 }
 
@@ -16,6 +17,7 @@ type Step = { name: 'ask' } | { name: 'saved' } | { name: 'error'; error: unknow
 export function RuleOfferBanner({
   offer,
   categoryName,
+  onApplied,
   onDismiss
 }: RuleOfferBannerProps): React.JSX.Element {
   const [step, setStep] = useState<Step>({ name: 'ask' })
@@ -48,7 +50,7 @@ export function RuleOfferBanner({
       {step.name === 'saved' && (
         <>
           <span>Regel gemaakt.</span>
-          <ReapplyRules refreshKey={0} />
+          <ReapplyRules refreshKey={0} onApplied={onApplied} />
           <button className="secondary" onClick={onDismiss}>
             Sluiten
           </button>
