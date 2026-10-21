@@ -16,9 +16,10 @@ export function TopBar({ canGoBack, onBack, onImported }: TopBarProps): React.JS
         className="onBar"
         disabled={!canGoBack}
         title="Terug naar de vorige pagina"
+        aria-label="Terug naar de vorige pagina"
         onClick={onBack}
       >
-        ← Terug
+        ←
       </button>
       <span className="topBarSpacer" />
       <ImportPanel onImported={onImported} />
