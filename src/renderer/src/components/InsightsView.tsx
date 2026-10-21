@@ -1,18 +1,20 @@
 // Interessant tab: notable findings about the spending of a year, in a few small sections.
 import { useCallback, useState } from 'react'
 import type { TopExpense } from '@shared/insightTypes'
-import { yearRangeOf } from '@shared/periods'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
+import { drillDownFilters, type OpenTransactions } from '../filters'
+import { useAccounts } from '../hooks/useAccounts'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { useCategories } from '../hooks/useCategories'
 import { useYearChoice } from '../hooks/useYearChoice'
-import type { Filters } from './FilterBar'
+import { yearRequest } from '../hooks/useYearOverview'
 import { FactsCard, MoversCard, TopCounterpartiesCard, TopExpensesCard } from './InsightCards'
 import { YearAccountFilter } from './YearAccountFilter'
 
 type InsightsViewProps = {
   dataRevision: number
-  onOpenTransactions: (filters: Partial<Filters>) => void
+  onOpenTransactions: OpenTransactions
 }
 
 export function InsightsView({
@@ -22,30 +24,20 @@ export function InsightsView({
   const { year, years, setYear } = useYearChoice(dataRevision)
   const [accountId, setAccountId] = useState('')
 
-  const load = useCallback(() => {
-    const range = yearRangeOf(year)
-    return api.insights.get({
-      from: range.from!,
-      to: range.to!,
-      accountIds: accountId ? [accountId] : undefined
-    })
-  }, [year, accountId])
+  const load = useCallback(() => api.insights.get(yearRequest(year, accountId)), [year, accountId])
   const insights = useAsyncData(load, dataRevision)
-  const categories = useAsyncData(api.categories.get, dataRevision)
-  const settings = useAsyncData(api.settings.get, dataRevision)
-
-  const accounts = settings.state.status === 'ready' ? settings.state.data.accounts : []
-  const categoryList = categories.state.status === 'ready' ? categories.state.data : []
+  const categoryList = useCategories(dataRevision)
+  const accounts = useAccounts(dataRevision)
 
   const openExpense = (expense: TopExpense): void =>
-    onOpenTransactions({
-      from: expense.bookingDate,
-      to: expense.bookingDate,
-      accountId,
-      categoryId: '',
-      internal: 'hide',
-      search: expense.counterparty
-    })
+    onOpenTransactions(
+      drillDownFilters({
+        from: expense.bookingDate,
+        to: expense.bookingDate,
+        accountId,
+        search: expense.counterparty
+      })
+    )
 
   return (
     <>

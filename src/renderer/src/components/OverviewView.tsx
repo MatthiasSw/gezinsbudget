@@ -1,14 +1,15 @@
 // Overview tab: pick a year and account, see totals per category and month, click through to details.
 import { useState } from 'react'
-import { monthKeyRange, yearRangeOf } from '@shared/periods'
+import { monthSpan, yearSpan } from '@shared/periods'
 import type { OverviewRow } from '@shared/overview'
 import { uncategorizedFilter } from '@shared/transactionQuery'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
+import { drillDownFilters, type OpenTransactions } from '../filters'
+import { useAccounts } from '../hooks/useAccounts'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { useYearChoice } from '../hooks/useYearChoice'
 import { useYearOverview } from '../hooks/useYearOverview'
-import type { Filters } from './FilterBar'
 import { OverviewTable } from './OverviewTable'
 import { YearAccountFilter } from './YearAccountFilter'
 
@@ -17,7 +18,7 @@ const filterInfo =
 
 type OverviewViewProps = {
   dataRevision: number
-  onOpenTransactions: (filters: Partial<Filters>) => void
+  onOpenTransactions: OpenTransactions
 }
 
 export function OverviewView({
@@ -27,7 +28,8 @@ export function OverviewView({
   const { year, years, setYear } = useYearChoice(dataRevision)
   const [accountId, setAccountId] = useState('')
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
-  const { overview, accounts } = useYearOverview(year, accountId, dataRevision)
+  const overview = useYearOverview(year, accountId, dataRevision)
+  const accounts = useAccounts(dataRevision)
   const budgets = useAsyncData(api.budgets.get, dataRevision)
 
   const toggle = (categoryId: string): void => {
@@ -37,15 +39,10 @@ export function OverviewView({
   }
 
   const openCell = (row: OverviewRow, month: string | null): void => {
-    const range = month ? monthKeyRange(month) : yearRangeOf(year)
-    onOpenTransactions({
-      from: range.from ?? '',
-      to: range.to ?? '',
-      accountId,
-      categoryId: row.categoryId ?? uncategorizedFilter,
-      internal: 'hide',
-      search: ''
-    })
+    const period = month ? monthSpan(month) : yearSpan(year)
+    onOpenTransactions(
+      drillDownFilters({ ...period, accountId, categoryId: row.categoryId ?? uncategorizedFilter })
+    )
   }
 
   return (

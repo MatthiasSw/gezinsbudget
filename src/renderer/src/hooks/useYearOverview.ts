@@ -1,26 +1,20 @@
-// Loads the overview of one year and account, plus the account list for the filter.
+// Loads the overview of one year and account.
 import { useCallback } from 'react'
-import { yearRangeOf } from '@shared/periods'
-import type { OverviewTable } from '@shared/overview'
-import type { Account } from '@shared/types'
+import type { OverviewRequest, OverviewTable } from '@shared/overview'
+import { yearSpan } from '@shared/periods'
 import { api } from '../api'
 import { useAsyncData, type AsyncState } from './useAsyncData'
+
+// An empty account id means all accounts.
+export function yearRequest(year: number, accountId: string): OverviewRequest {
+  return { ...yearSpan(year), accountIds: accountId ? [accountId] : undefined }
+}
 
 export function useYearOverview(
   year: number,
   accountId: string,
   dataRevision: number
-): { overview: AsyncState<OverviewTable>; accounts: Account[] } {
-  const load = useCallback(() => {
-    const range = yearRangeOf(year)
-    return api.overview.get({
-      from: range.from!,
-      to: range.to!,
-      accountIds: accountId ? [accountId] : undefined
-    })
-  }, [year, accountId])
-  const overview = useAsyncData(load, dataRevision)
-  const settings = useAsyncData(api.settings.get, dataRevision)
-  const accounts = settings.state.status === 'ready' ? settings.state.data.accounts : []
-  return { overview: overview.state, accounts }
+): AsyncState<OverviewTable> {
+  const load = useCallback(() => api.overview.get(yearRequest(year, accountId)), [year, accountId])
+  return useAsyncData(load, dataRevision).state
 }

@@ -1,7 +1,17 @@
 // Tests rule matching per field and operator, first-match-wins and manual categories.
 import { describe, expect, it } from 'vitest'
 import type { Rule, Transaction } from '@shared/types'
-import { applyRules, matchRule, withRuleCategories } from './rules'
+import { createRuleMatcher, withRuleCategories } from './rules'
+
+function matchRule(candidate: Rule, item: Transaction): boolean {
+  return createRuleMatcher(candidate)(item)
+}
+
+function changedByRules(transactions: Transaction[], rules: Rule[]): Transaction[] {
+  return withRuleCategories(transactions, rules).filter(
+    (item, index) => item !== transactions[index]
+  )
+}
 
 function transaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
@@ -32,7 +42,7 @@ function rule(overrides: Partial<Rule> = {}): Rule {
   }
 }
 
-describe('matchRule', () => {
+describe('createRuleMatcher', () => {
   it('contains ignores case by default', () => {
     expect(matchRule(rule(), transaction())).toBe(true)
   })
@@ -96,22 +106,22 @@ describe('matchRule', () => {
   })
 })
 
-describe('applyRules', () => {
+describe('withRuleCategories changes', () => {
   it('lets the first matching rule win', () => {
     const rules = [
       rule({ id: 'a', categoryId: 'first' }),
       rule({ id: 'b', value: 'super', categoryId: 'second' })
     ]
-    expect(applyRules([transaction()], rules)[0].categoryId).toBe('first')
+    expect(changedByRules([transaction()], rules)[0].categoryId).toBe('first')
   })
 
   it('skips disabled rules', () => {
     const rules = [rule({ enabled: false, categoryId: 'off' }), rule({ id: 'b' })]
-    expect(applyRules([transaction()], rules)[0].categoryId).toBe('groceries')
+    expect(changedByRules([transaction()], rules)[0].categoryId).toBe('groceries')
   })
 
   it('marks the category source as rule', () => {
-    expect(applyRules([transaction()], [rule()])[0]).toMatchObject({
+    expect(changedByRules([transaction()], [rule()])[0]).toMatchObject({
       categoryId: 'groceries',
       categorySource: 'rule'
     })
@@ -119,24 +129,24 @@ describe('applyRules', () => {
 
   it('never touches a manual category', () => {
     const manual = transaction({ categoryId: 'fun', categorySource: 'manual' })
-    expect(applyRules([manual], [rule()])).toEqual([])
+    expect(changedByRules([manual], [rule()])).toEqual([])
   })
 
   it('returns only changed transactions', () => {
     const unchanged = transaction({ id: 'tx2', categoryId: 'groceries', categorySource: 'rule' })
     const changed = transaction({ id: 'tx3' })
-    expect(applyRules([unchanged, changed], [rule()]).map((item) => item.id)).toEqual(['tx3'])
+    expect(changedByRules([unchanged, changed], [rule()]).map((item) => item.id)).toEqual(['tx3'])
   })
 
   it('removes a rule category when the rule no longer matches', () => {
     const stale = transaction({ categoryId: 'groceries', categorySource: 'rule' })
-    const [result] = applyRules([stale], [])
+    const [result] = changedByRules([stale], [])
     expect(result.categoryId).toBeUndefined()
     expect(result.categorySource).toBeUndefined()
   })
 
   it('leaves uncategorised transactions without a match alone', () => {
-    expect(applyRules([transaction()], [rule({ value: 'nothing' })])).toEqual([])
+    expect(changedByRules([transaction()], [rule({ value: 'nothing' })])).toEqual([])
   })
 })
 

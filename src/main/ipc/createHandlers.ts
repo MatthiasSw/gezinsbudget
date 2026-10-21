@@ -10,6 +10,7 @@ import { createOverviewService } from '../services/overviewService'
 import { createRecurringService } from '../services/recurringService'
 import { createRuleService } from '../services/ruleService'
 import { createTransactionService, type SaveFile } from '../services/transactionService'
+import type { GetRepository } from '../storage/repository'
 import type { RepositoryProvider } from '../storage/repositoryProvider'
 import { createBudgetHandlers } from './budgetHandlers'
 import { createCategoryHandlers } from './categoryHandlers'
@@ -33,7 +34,7 @@ export type HandlerDependencies = {
 
 export function createHandlers(dependencies: HandlerDependencies): IpcHandlers {
   const { store, provider, chooseDirectory, chooseFile, saveFile } = dependencies
-  const getRepository = (): ReturnType<RepositoryProvider['get']> => provider.get()
+  const getRepository: GetRepository = () => provider.get()
 
   return {
     ...createConfigHandlers({ store, chooseDirectory }),

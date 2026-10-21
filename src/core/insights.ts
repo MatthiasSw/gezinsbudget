@@ -1,6 +1,5 @@
 // Finds notable things in the spending of a period: facts, biggest expenses, counterparties and movers.
 import { lastDayOfMonth, monthKey, monthKeysBetween } from '@shared/dates'
-import { normalizeIban } from '@shared/iban'
 import type {
   CategoryMover,
   InsightFact,
@@ -8,7 +7,9 @@ import type {
   TopCounterparty,
   TopExpense
 } from '@shared/insightTypes'
+import type { DateSpan } from '@shared/periods'
 import type { Category, Transaction } from '@shared/types'
+import { countedTransactions } from './countedTransactions'
 import { counterpartyKey } from './counterpartyKey'
 
 const topExpenseCount = 10
@@ -19,10 +20,7 @@ const minCompleteMonths = 3
 const minVisits = 3
 const minTransactionsForWeekday = 20
 
-export type InsightPeriod = {
-  from: string
-  to: string
-}
+export type InsightPeriod = DateSpan
 
 export type InsightRequest = {
   period: InsightPeriod
@@ -40,8 +38,8 @@ export function computeInsights(
   categories: Category[],
   request: InsightRequest
 ): Insights {
-  const current = select(transactions, request.period, request.accountIds)
-  const previous = select(transactions, request.previous, request.accountIds)
+  const current = countedTransactions(transactions, request.period, request.accountIds)
+  const previous = countedTransactions(transactions, request.previous, request.accountIds)
   const spends = toSpends(current)
   const rootOf = rootCategoryFinder(categories)
   const currentByCategory = sumByRootCategory(spends, rootOf)
@@ -59,21 +57,6 @@ export function computeInsights(
       .slice(0, moverCount),
     hasPreviousPeriod: previous.some((transaction) => transaction.amountCents < 0)
   }
-}
-
-function select(
-  transactions: Transaction[],
-  period: InsightPeriod,
-  accountIds: string[] | undefined
-): Transaction[] {
-  const accounts = accountIds?.map(normalizeIban)
-  return transactions.filter(
-    (transaction) =>
-      !transaction.isInternalTransfer &&
-      transaction.bookingDate >= period.from &&
-      transaction.bookingDate <= period.to &&
-      (!accounts?.length || accounts.includes(transaction.accountId))
-  )
 }
 
 function toSpends(transactions: Transaction[]): Spend[] {

@@ -1,14 +1,10 @@
 // Shows the native folder picker and returns the chosen path, or null when cancelled.
-import { BrowserWindow, dialog } from 'electron'
+import { showOpenDialog } from './nativeDialogs'
 
 export async function chooseDirectory(): Promise<string | null> {
-  const options = {
+  const result = await showOpenDialog({
     title: 'Kies de map met je budgetgegevens',
-    properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>
-  }
-  const parent = BrowserWindow.getFocusedWindow()
-  const result = parent
-    ? await dialog.showOpenDialog(parent, options)
-    : await dialog.showOpenDialog(options)
+    properties: ['openDirectory', 'createDirectory']
+  })
   return result.canceled ? null : result.filePaths[0]
 }

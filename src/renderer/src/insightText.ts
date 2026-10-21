@@ -4,6 +4,7 @@ import { formatMonthLabel } from '@shared/dates'
 import type { InsightFact } from '@shared/insightTypes'
 import { formatCents } from '@shared/money'
 import type { Category } from '@shared/types'
+import { pluralize } from './plural'
 
 const weekdayNames = [
   'zondag',
@@ -18,7 +19,7 @@ const weekdayNames = [
 export function describeFact(fact: InsightFact, categories: Category[]): string {
   switch (fact.kind) {
     case 'averagePerMonth':
-      return `Je gaf gemiddeld ${formatCents(fact.cents)} per maand uit, gerekend over ${plural(fact.months, 'maand', 'maanden')}.`
+      return `Je gaf gemiddeld ${formatCents(fact.cents)} per maand uit, gerekend over ${pluralize(fact.months, 'maand', 'maanden')}.`
     case 'priciestMonth':
       return `${formatMonthLabel(fact.month)} was je duurste maand: je gaf toen ${formatCents(fact.cents)} uit.`
     case 'cheapestMonth':
@@ -34,15 +35,11 @@ export function describeFact(fact: InsightFact, categories: Category[]): string 
         ? `Je hield ${fact.percent}% van je inkomsten over: ${formatCents(fact.savedCents)}.`
         : `Je gaf ${-fact.percent}% meer uit dan je verdiende: ${formatCents(-fact.savedCents)} meer.`
     case 'uncategorized':
-      return `${plural(fact.count, 'uitgave heeft', 'uitgaven hebben')} nog geen categorie. Met een categorie wordt dit overzicht nauwkeuriger.`
+      return `${pluralize(fact.count, 'uitgave heeft', 'uitgaven hebben')} nog geen categorie. Met een categorie wordt dit overzicht nauwkeuriger.`
   }
 }
 
 export function categoryName(categoryId: string, categories: Category[]): string {
   const category = categories.find((candidate) => candidate.id === categoryId)
   return category ? categoryLabel(category) : 'Onbekend'
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
 }

@@ -4,14 +4,14 @@ import type { Insights } from '@shared/insightTypes'
 import type { OverviewRequest } from '@shared/overview'
 import { todayAsIso } from '@shared/periods'
 import { computeInsights } from '@core/insights'
-import type { DataRepository } from '../storage/repository'
+import type { GetRepository } from '../storage/repository'
 
 export type InsightsService = {
   get(request: OverviewRequest): Promise<Insights>
 }
 
 export type InsightsServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
   today?: () => string
 }
 

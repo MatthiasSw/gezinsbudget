@@ -24,7 +24,7 @@ export function clearCategories(
   )
 }
 
-function withoutCategory(transaction: Transaction): Transaction {
+export function withoutCategory(transaction: Transaction): Transaction {
   const { categoryId: removedCategory, categorySource: removedSource, ...rest } = transaction
   void removedCategory
   void removedSource

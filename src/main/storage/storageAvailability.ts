@@ -1,6 +1,7 @@
 // Detects an unreachable data folder (for example an offline network drive) and reports it as a typed error.
 import { stat } from 'fs/promises'
 import { AppError } from '@shared/errors'
+import { errorCode } from './fsErrors'
 
 const unavailableCodes = [
   'ENOENT',
@@ -26,7 +27,7 @@ export async function assertDirectoryAvailable(directory: string): Promise<void>
 
 export function toAvailabilityError(error: unknown): unknown {
   if (error instanceof AppError) return error
-  const code = (error as { code?: string } | null)?.code
+  const code = errorCode(error)
   return code && unavailableCodes.includes(code) ? unavailableError() : error
 }
 

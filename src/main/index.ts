@@ -1,5 +1,5 @@
 // Application entry point: wires the services together and owns the app lifecycle.
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog } from 'electron'
 import { hostname } from 'os'
 import { join } from 'path'
 import { chooseDirectory } from './dialogs/chooseDirectory'
@@ -11,6 +11,9 @@ import { createHandlers } from './ipc/createHandlers'
 import { registerHandlers } from './ipc/registerHandlers'
 import { createLocalConfigStore } from './localConfig'
 import { createRepositoryProvider } from './storage/repositoryProvider'
+
+// An unreachable network drive must not keep the app from closing.
+const lockReleaseTimeoutMs = 3000
 
 async function start(): Promise<void> {
   const configPath = join(app.getPath('userData'), 'config.json')
@@ -44,14 +47,38 @@ function releaseLockOnQuit(release: () => Promise<void>): void {
   app.on('will-quit', (event) => {
     if (released) return
     event.preventDefault()
-    release().finally(() => {
+    withTimeout(release(), lockReleaseTimeoutMs).finally(() => {
       released = true
       app.quit()
     })
   })
 }
 
-app.whenReady().then(start)
+function withTimeout(task: Promise<void>, timeoutMs: number): Promise<void> {
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))
+  return Promise.race([task.catch(() => undefined), timeout])
+}
+
+function showStartupError(error: unknown): void {
+  const details = error instanceof Error ? error.message : String(error)
+  dialog.showErrorBox('Gezinsbudget kan niet starten', details)
+  app.quit()
+}
+
+// A second copy on the same pc would write to the same data folder; bring the first one forward instead.
+function focusExistingWindow(): void {
+  const [window] = BrowserWindow.getAllWindows()
+  if (!window) return
+  if (window.isMinimized()) window.restore()
+  window.focus()
+}
+
+if (app.requestSingleInstanceLock()) {
+  app.on('second-instance', focusExistingWindow)
+  app.whenReady().then(start).catch(showStartupError)
+} else {
+  app.quit()
+}
 
 app.on('window-all-closed', () => {
   app.quit()

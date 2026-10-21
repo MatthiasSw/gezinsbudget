@@ -1,19 +1,16 @@
 // Shows the native save dialog for an export and writes the chosen file.
-import { app, BrowserWindow, dialog } from 'electron'
+import { app } from 'electron'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { AppError } from '@shared/errors'
+import { showSaveDialog } from './nativeDialogs'
 
 export async function saveExportFile(suggestedName: string, content: string): Promise<boolean> {
-  const options = {
+  const result = await showSaveDialog({
     title: 'Transacties exporteren',
     defaultPath: join(app.getPath('documents'), suggestedName),
     filters: [{ name: 'CSV-bestanden', extensions: ['csv'] }]
-  }
-  const parent = BrowserWindow.getFocusedWindow()
-  const result = parent
-    ? await dialog.showSaveDialog(parent, options)
-    : await dialog.showSaveDialog(options)
+  })
   if (result.canceled || !result.filePath) return false
 
   try {

@@ -1,14 +1,11 @@
 // Entry point of the import feature: shows the right step of the import flow.
 import { describeError, describeErrorDetails } from '../errorMessages'
 import { useImportFlow } from '../hooks/useImportFlow'
+import { pluralize, transactionCount } from '../plural'
 import { ImportIcon } from './icons'
 import { ImportPreviewView } from './ImportPreviewView'
 import { Modal } from './Modal'
 import { UnknownAccountsForm } from './UnknownAccountsForm'
-
-function pluralize(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`
-}
 
 type ImportPanelProps = {
   onImported: () => void
@@ -58,7 +55,7 @@ export function ImportPanel({ onImported, variant = 'bar' }: ImportPanelProps): 
           <section>
             <h2>Import klaar</h2>
             <p>
-              {pluralize(state.result.addedCount, 'transactie', 'transacties')} toegevoegd,{' '}
+              {transactionCount(state.result.addedCount)} toegevoegd,{' '}
               {pluralize(state.result.duplicateCount, 'dubbel', 'dubbels')} overgeslagen.
             </p>
             <button onClick={close}>Sluiten</button>

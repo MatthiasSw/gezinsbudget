@@ -3,6 +3,7 @@ import { formatCents } from '@shared/money'
 import { formatBelgianDate } from '@shared/dates'
 import type { RuleTestResult } from '@shared/ruleTypes'
 import { describeError } from '../errorMessages'
+import { transactionCount } from '../plural'
 
 export type RuleTestOutcome =
   { ruleId: string; result: RuleTestResult } | { ruleId: string; error: unknown }
@@ -35,10 +36,7 @@ function TestSummary({ result }: { result: RuleTestResult }): React.JSX.Element 
   }
   return (
     <div>
-      <strong>
-        Deze regel raakt {result.matchCount}{' '}
-        {result.matchCount === 1 ? 'transactie' : 'transacties'}.
-      </strong>
+      <strong>Deze regel raakt {transactionCount(result.matchCount)}.</strong>
       {result.unchangedCount > 0 && (
         <span className="muted">
           {' '}

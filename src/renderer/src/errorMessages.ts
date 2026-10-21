@@ -37,7 +37,7 @@ export function describeErrorDetails(error: unknown): string | undefined {
   if (!(error instanceof AppError)) return undefined
   if (error.code === 'IMPORT_MISSING_COLUMNS') return missingColumnsText(error.details)
   if (error.code === 'IMPORT_PARSE_ERROR') return problemLinesText(error.details)
-  if (error.code === 'LOCKED_BY_OTHER') return hostText(error.details)
+  if (error.code === 'LOCKED_BY_OTHER') return hostText(error)
   return undefined
 }
 
@@ -56,7 +56,12 @@ function problemLinesText(details: unknown): string | undefined {
   return `Problemen op regel: ${errors.map((entry) => entry.line).join(', ')}`
 }
 
-function hostText(details: unknown): string | undefined {
-  const host = (details as { host?: string } | undefined)?.host
+// The pc that holds the writer lock, when the error says so.
+export function lockHost(error: AppError): string | undefined {
+  return (error.details as { host?: string } | undefined)?.host
+}
+
+function hostText(error: AppError): string | undefined {
+  const host = lockHost(error)
   return host ? `Computer: ${host}` : undefined
 }

@@ -1,4 +1,4 @@
-// Own accounts manager: add, rename and remove accounts; changes save themselves.
+// Own accounts manager: add, rename and remove accounts; changes are saved with a button.
 import { useState } from 'react'
 import { formatIban } from '@shared/iban'
 import type { Account } from '@shared/types'
@@ -6,6 +6,7 @@ import { api } from '../api'
 import { describeError } from '../errorMessages'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { useDraftSave } from '../hooks/useDraftSave'
+import { transactionCount } from '../plural'
 import { InfoTip } from './InfoTip'
 import { SaveBar } from './SaveBar'
 import { NewAccountForm } from './NewAccountForm'
@@ -13,12 +14,12 @@ import { NewAccountForm } from './NewAccountForm'
 const accountsInfo =
   'Vul hier al je eigen rekeningen in. Zo herkent Gezinsbudget geld dat je tussen die rekeningen verplaatst, bijvoorbeeld van je zichtrekening naar je spaarrekening, als interne overboeking. Dat is geen inkomst of uitgave en telt dus niet mee in je totalen.'
 
-type AccountsEditorProps = {
-  stored: Account[]
+type AccountsViewProps = {
+  dataRevision: number
 }
 
-function pluralize(count: number): string {
-  return `${count} ${count === 1 ? 'transactie' : 'transacties'}`
+type AccountsEditorProps = {
+  stored: Account[]
 }
 
 function missingNameMessage(accounts: Account[]): string | null {
@@ -27,8 +28,9 @@ function missingNameMessage(accounts: Account[]): string | null {
     : null
 }
 
-export function AccountsView(): React.JSX.Element {
-  const settings = useAsyncData(api.settings.get)
+// Reloads after an import, because the import flow can register new accounts.
+export function AccountsView({ dataRevision }: AccountsViewProps): React.JSX.Element {
+  const settings = useAsyncData(api.settings.get, dataRevision)
 
   if (settings.state.status === 'error') {
     return <p className="errorText">{describeError(settings.state.error)}</p>
@@ -38,7 +40,7 @@ export function AccountsView(): React.JSX.Element {
 }
 
 function AccountsEditor({ stored }: AccountsEditorProps): React.JSX.Element {
-  const [changedTransactions, setChangedTransactions] = useState<number | undefined>(undefined)
+  const [changedTransactions, setChangedTransactions] = useState(0)
   const {
     value: accounts,
     change,
@@ -106,10 +108,10 @@ function AccountsEditor({ stored }: AccountsEditorProps): React.JSX.Element {
         onSave={saveDraft}
         onDiscard={discard}
       />
-      {changedTransactions !== undefined && status.kind === 'saved' && changedTransactions > 0 && (
+      {status.kind === 'saved' && changedTransactions > 0 && (
         <p className="muted">
-          {pluralize(changedTransactions)} opnieuw ingedeeld als interne overboeking of gewone
-          transactie.
+          {transactionCount(changedTransactions)} opnieuw ingedeeld als interne overboeking of
+          gewone transactie.
         </p>
       )}
     </section>

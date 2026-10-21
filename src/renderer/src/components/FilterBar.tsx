@@ -4,16 +4,8 @@ import { flattenTree } from '@shared/categoryTree'
 import { presetRange, todayAsIso, type PeriodPreset } from '@shared/periods'
 import { uncategorizedFilter, type InternalTransferFilter } from '@shared/transactionQuery'
 import type { Account, Category } from '@shared/types'
+import type { Filters } from '../filters'
 import { InfoTip } from './InfoTip'
-
-export type Filters = {
-  from: string
-  to: string
-  accountId: string
-  categoryId: string
-  internal: InternalTransferFilter
-  search: string
-}
 
 type FilterBarProps = {
   filters: Filters

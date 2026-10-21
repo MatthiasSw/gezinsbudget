@@ -13,12 +13,13 @@ export type PendingImportsOptions = {
 export type PendingImports<T> = {
   add(value: T): string
   get(token: string): T
-  replace(token: string, value: T): void
   remove(token: string): void
 }
 
 type Entry<T> = { value: T; expiresAt: number }
 
+// Every use extends the lifetime, so an import the user is still looking at never expires.
+// Expired entries are dropped on every call, so abandoned files do not stay in memory.
 export function createPendingImports<T>(options: PendingImportsOptions = {}): PendingImports<T> {
   const now = options.now ?? (() => new Date())
   const createToken = options.createToken ?? randomUUID
@@ -44,13 +45,12 @@ export function createPendingImports<T>(options: PendingImportsOptions = {}): Pe
       removeExpired()
       const entry = entries.get(token)
       if (!entry) throw new AppError('UNKNOWN', 'This import has expired, pick the file again')
+      entry.expiresAt = expiry()
       return entry.value
-    },
-    replace: (token, value) => {
-      entries.set(token, { value, expiresAt: expiry() })
     },
     remove: (token) => {
       entries.delete(token)
+      removeExpired()
     }
   }
 }

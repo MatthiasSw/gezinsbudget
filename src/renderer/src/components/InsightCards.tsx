@@ -4,6 +4,7 @@ import type { CategoryMover, InsightFact, TopCounterparty, TopExpense } from '@s
 import { formatCents } from '@shared/money'
 import type { Category } from '@shared/types'
 import { categoryName, describeFact } from '../insightText'
+import { pluralize } from '../plural'
 
 type FactsCardProps = {
   facts: InsightFact[]
@@ -94,7 +95,7 @@ export function TopCounterpartiesCard({
                 <td>
                   {item.name}
                   <span className="muted detail">
-                    {item.count} {item.count === 1 ? 'betaling' : 'betalingen'}
+                    {pluralize(item.count, 'betaling', 'betalingen')}
                   </span>
                 </td>
                 <td className="amount negative">{formatCents(-item.totalCents)}</td>

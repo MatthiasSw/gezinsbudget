@@ -47,6 +47,7 @@ export function createWriterLock(
   }
 
   const startHeartbeat = (): void => {
+    clearInterval(heartbeatTimer)
     let writing = false
     heartbeatTimer = setInterval(() => {
       if (writing) return

@@ -1,6 +1,6 @@
 // Tests period presets, including leap years and the January rollover.
 import { describe, expect, it } from 'vitest'
-import { monthKeyRange, presetRange, todayAsIso, yearRangeOf } from './periods'
+import { monthSpan, presetRange, todayAsIso, yearSpan } from './periods'
 
 describe('presetRange', () => {
   it('covers the current month', () => {
@@ -37,12 +37,12 @@ describe('todayAsIso', () => {
   })
 })
 
-describe('monthKeyRange and yearRangeOf', () => {
+describe('monthSpan and yearSpan', () => {
   it('turns a month key into its first and last day', () => {
-    expect(monthKeyRange('2026-02')).toEqual({ from: '2026-02-01', to: '2026-02-28' })
+    expect(monthSpan('2026-02')).toEqual({ from: '2026-02-01', to: '2026-02-28' })
   })
 
   it('turns a year into its first and last day', () => {
-    expect(yearRangeOf(2026)).toEqual({ from: '2026-01-01', to: '2026-12-31' })
+    expect(yearSpan(2026)).toEqual({ from: '2026-01-01', to: '2026-12-31' })
   })
 })
