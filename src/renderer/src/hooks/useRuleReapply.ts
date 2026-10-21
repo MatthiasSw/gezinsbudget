@@ -4,7 +4,10 @@ import { api } from '../api'
 import { transactionCount } from '../plural'
 import { useTransientMessage } from './useTransientMessage'
 
-export function useRuleReapply(refreshKey: number): {
+export function useRuleReapply(
+  refreshKey: number,
+  onApplied?: () => void
+): {
   pendingCount: number | null
   busy: boolean
   message: string | null
@@ -38,12 +41,13 @@ export function useRuleReapply(refreshKey: number): {
       const { changedCount } = await api.rules.reapply({ dryRun: false })
       setPendingCount(0)
       showMessage(`${transactionCount(changedCount)} bijgewerkt.`)
+      onApplied?.()
     } catch (caught) {
       setError(caught)
     } finally {
       setBusy(false)
     }
-  }, [showMessage])
+  }, [showMessage, onApplied])
 
   return { pendingCount, busy, message, error, apply }
 }

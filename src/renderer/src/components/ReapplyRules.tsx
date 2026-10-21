@@ -6,6 +6,7 @@ import { transactionCount } from '../plural'
 type ReapplyRulesProps = {
   refreshKey: number
   disabled?: boolean
+  onApplied?: () => void
 }
 
 function applyLabel(pendingCount: number | null): string {
@@ -15,9 +16,10 @@ function applyLabel(pendingCount: number | null): string {
 
 export function ReapplyRules({
   refreshKey,
-  disabled = false
+  disabled = false,
+  onApplied
 }: ReapplyRulesProps): React.JSX.Element {
-  const { pendingCount, busy, message, error, apply } = useRuleReapply(refreshKey)
+  const { pendingCount, busy, message, error, apply } = useRuleReapply(refreshKey, onApplied)
   const nothingToApply = pendingCount === null || pendingCount === 0
 
   return (

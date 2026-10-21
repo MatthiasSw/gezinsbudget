@@ -229,7 +229,8 @@ export const iconChoices = [
   '🌿',
   '🤝',
   '🚨',
-  '🎫'
+  '🎫',
+  '❓'
 ]
 
 export const maxIconLength = 16

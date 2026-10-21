@@ -615,6 +615,9 @@ table.rules input[type='text'] {
 }
 
 .offerBanner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -623,6 +626,7 @@ table.rules input[type='text'] {
   margin-bottom: 12px;
   background: var(--accent-soft);
   border-radius: var(--radius-small);
+  box-shadow: var(--shadow);
 }
 
 .chartCard {

@@ -130,10 +130,12 @@ export function TransactionsView({
 
       {ruleOffer.offer && (
         <RuleOfferBanner
+          key={`${ruleOffer.offer.field}:${ruleOffer.offer.value}:${ruleOffer.offer.categoryId}`}
           offer={ruleOffer.offer}
           categoryName={
             categoryList.find((category) => category.id === ruleOffer.offer?.categoryId)?.name ?? ''
           }
+          onApplied={transactions.reload}
           onDismiss={ruleOffer.dismiss}
         />
       )}
