@@ -34,16 +34,17 @@ function hashRow(row: IdentifiableRow): string {
     row.bookingDate,
     String(row.amountCents),
     normalizeIban(row.counterpartyIban),
-    normalizeText(row.counterpartyName),
-    normalizeText(row.message),
-    normalizeText(row.statementNumber),
-    normalizeText(row.transactionNumber),
-    normalizeText(row.description)
+    normalizeIdText(row.counterpartyName),
+    normalizeIdText(row.message),
+    normalizeIdText(row.statementNumber),
+    normalizeIdText(row.transactionNumber),
+    normalizeIdText(row.description)
   ]
   return sha256(fields.join(fieldSeparator))
 }
 
-function normalizeText(text: string | undefined): string {
+// Only unifies spacing and Unicode form; case and accents stay, so existing ids never change.
+function normalizeIdText(text: string | undefined): string {
   return (text ?? '').normalize('NFC').trim().replace(/\s+/g, ' ')
 }
 

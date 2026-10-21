@@ -16,12 +16,14 @@ export function isInternalTransfer(
   return ownIbans.some((iban) => normalizeIban(iban) === counterparty)
 }
 
+// Returns the same object for every transaction whose flag does not change.
 export function markInternalTransfers<T extends TransferCandidate>(
   transactions: T[],
   ownIbans: string[]
 ): T[] {
-  return transactions.map((transaction) => ({
-    ...transaction,
-    isInternalTransfer: isInternalTransfer(transaction, ownIbans)
-  }))
+  return transactions.map((transaction) => {
+    const internal = isInternalTransfer(transaction, ownIbans)
+    if (internal === transaction.isInternalTransfer) return transaction
+    return { ...transaction, isInternalTransfer: internal }
+  })
 }

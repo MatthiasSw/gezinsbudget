@@ -1,7 +1,7 @@
 // Builds the category-by-month overview from the stored transactions.
 import type { OverviewRequest, OverviewTable } from '@shared/overview'
 import { totalsByCategoryAndMonth } from '@core/aggregate'
-import type { DataRepository } from '../storage/repository'
+import type { GetRepository } from '../storage/repository'
 
 export type OverviewService = {
   get(request: OverviewRequest): Promise<OverviewTable>
@@ -9,7 +9,7 @@ export type OverviewService = {
 }
 
 export type OverviewServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
 }
 
 export function createOverviewService({

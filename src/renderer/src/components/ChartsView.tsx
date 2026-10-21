@@ -4,6 +4,7 @@ import { CategoryEvolutionChart, evolutionSectionId } from '../charts/CategoryEv
 import { IncomeExpenseChart, incomeExpenseSectionId } from '../charts/IncomeExpenseChart'
 import { SpendingByCategoryChart, spendingSectionId } from '../charts/SpendingByCategoryChart'
 import { describeError } from '../errorMessages'
+import { useAccounts } from '../hooks/useAccounts'
 import { useActiveSection } from '../hooks/useActiveSection'
 import { useYearChoice } from '../hooks/useYearChoice'
 import { useYearOverview } from '../hooks/useYearOverview'
@@ -24,7 +25,8 @@ const sectionIds = sections.map((section) => section.id)
 export function ChartsView({ dataRevision }: ChartsViewProps): React.JSX.Element {
   const { year, years, setYear } = useYearChoice(dataRevision)
   const [accountId, setAccountId] = useState('')
-  const { overview, accounts } = useYearOverview(year, accountId, dataRevision)
+  const overview = useYearOverview(year, accountId, dataRevision)
+  const accounts = useAccounts(dataRevision)
   const hasCharts = overview.status === 'ready' && overview.data.rows.length > 0
   const [active, setActive] = useActiveSection(sectionIds, hasCharts)
 
@@ -57,7 +59,7 @@ export function ChartsView({ dataRevision }: ChartsViewProps): React.JSX.Element
           <TabBar items={sections} current={active} label="Grafieken" sticky onSelect={jumpTo} />
           <IncomeExpenseChart overview={overview.data} />
           <SpendingByCategoryChart overview={overview.data} />
-          <CategoryEvolutionChart overview={overview.data} />
+          <CategoryEvolutionChart key={year} overview={overview.data} />
         </>
       )}
     </>

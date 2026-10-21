@@ -1,5 +1,6 @@
 // A small "more actions" button that opens a menu with a few commands.
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { useDismiss } from '../hooks/useDismiss'
 
 export type MoreMenuItem = {
   label: string
@@ -14,22 +15,8 @@ type MoreMenuProps = {
 export function MoreMenu({ items }: MoreMenuProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const container = useRef<HTMLSpanElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const closeOnOutsideClick = (event: MouseEvent): void => {
-      if (!container.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const closeOnEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', closeOnOutsideClick)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsideClick)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(container, open, close)
 
   return (
     <span className="moreMenu" ref={container}>

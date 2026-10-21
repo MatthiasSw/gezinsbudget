@@ -33,15 +33,17 @@ function groupByCounterparty(transactions: Transaction[]): Map<string, Transacti
     if (transaction.amountCents >= 0 || transaction.isInternalTransfer) continue
     const key = counterpartyKey(transaction)
     if (key === '') continue
-    groups.set(key, [...(groups.get(key) ?? []), transaction])
+    const group = groups.get(key)
+    if (group) group.push(transaction)
+    else groups.set(key, [transaction])
   }
   return groups
 }
 
 function clusterByAmount(group: Transaction[]): Transaction[][] {
   const clusters: Transaction[][] = []
-  const ascending = [...group].sort((a, b) => b.amountCents - a.amountCents)
-  for (const transaction of ascending) {
+  const smallestExpenseFirst = [...group].sort((a, b) => b.amountCents - a.amountCents)
+  for (const transaction of smallestExpenseFirst) {
     const current = clusters[clusters.length - 1]
     const smallest = current ? Math.abs(current[0].amountCents) : 0
     if (current && Math.abs(transaction.amountCents) <= smallest * amountSpreadRatio) {

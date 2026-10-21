@@ -10,15 +10,22 @@ import {
   YAxis
 } from 'recharts'
 import { categoryLabel } from '@shared/categoryIcons'
-import { shortMonthName } from '@shared/dates'
-import { formatCents, formatCompactEuros } from '@shared/money'
+import { formatMonthLabel } from '@shared/dates'
+import { formatCents } from '@shared/money'
 import type { OverviewTable } from '@shared/overview'
 import { SearchableSelect } from '../components/SearchableSelect'
 import type { SearchOption } from '../optionFilter'
 import { ChartCard } from './ChartCard'
 import { categoryEvolution, spendingByCategory, type CategoryEvolutionPoint } from './chartData'
 import { niceAxis } from './chartScale'
-import { axisTick, chartHeight, gridStroke, seriesColors, surfaceRing } from './chartStyle'
+import {
+  amountAxisProps,
+  chartHeight,
+  gridStroke,
+  monthAxisProps,
+  seriesColors,
+  surfaceRing
+} from './chartStyle'
 import {
   addCategory,
   maxSelectedCategories,
@@ -59,8 +66,6 @@ export function CategoryEvolutionChart({
     0,
     Math.max(0, ...points.flatMap((point) => Object.values(point.centsByCategory)))
   )
-  const labelOf = (month: string): string =>
-    points.find((point) => point.month === month)?.label ?? month
   const available = namedRows.filter(
     (row) => !selection.some((item) => item.categoryId === row.categoryId)
   )
@@ -118,26 +123,16 @@ export function CategoryEvolutionChart({
         <ResponsiveContainer width="100%" height={chartHeight}>
           <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke={gridStroke} />
-            <XAxis
-              dataKey="month"
-              tickFormatter={shortMonthName}
-              tick={axisTick}
-              axisLine={{ stroke: gridStroke }}
-              tickLine={false}
-            />
-            <YAxis
-              tickFormatter={formatCompactEuros}
-              domain={axis.domain}
-              ticks={axis.ticks}
-              tick={axisTick}
-              axisLine={false}
-              tickLine={false}
-              width={48}
-            />
+            <XAxis {...monthAxisProps} />
+            <YAxis {...amountAxisProps(axis)} />
             <Tooltip
               cursor={{ stroke: 'var(--text-soft)', strokeWidth: 1 }}
               content={({ active, payload, label }) => (
-                <ChartTooltip active={active} payload={payload} title={labelOf(String(label))} />
+                <ChartTooltip
+                  active={active}
+                  payload={payload}
+                  title={formatMonthLabel(String(label))}
+                />
               )}
             />
             {visible.map((item) => (

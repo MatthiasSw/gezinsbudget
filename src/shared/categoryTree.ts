@@ -41,13 +41,17 @@ export function assertValidCategories(categories: Category[]): void {
 function depthOf(category: Category, byId: Map<string, Category>): number {
   let depth = 0
   const seen = new Set<string>([category.id])
-  let current = category.parentId === undefined ? undefined : byId.get(category.parentId)
+  let current = parentOf(category, byId)
   while (current && !seen.has(current.id)) {
     depth++
     seen.add(current.id)
-    current = current.parentId === undefined ? undefined : byId.get(current.parentId)
+    current = parentOf(current, byId)
   }
   return depth
+}
+
+function parentOf(category: Category, byId: Map<string, Category>): Category | undefined {
+  return category.parentId === undefined ? undefined : byId.get(category.parentId)
 }
 
 export function descendantIds(categories: Category[], rootId: string): string[] {
@@ -114,11 +118,11 @@ export function flattenTree(categories: Category[], groupByKind = false): Catego
 
 function leadsToCycle(start: Category, byId: Map<string, Category>): boolean {
   const seen = new Set<string>([start.id])
-  let current = start.parentId === undefined ? undefined : byId.get(start.parentId)
+  let current = parentOf(start, byId)
   while (current) {
     if (seen.has(current.id)) return true
     seen.add(current.id)
-    current = current.parentId === undefined ? undefined : byId.get(current.parentId)
+    current = parentOf(current, byId)
   }
   return false
 }

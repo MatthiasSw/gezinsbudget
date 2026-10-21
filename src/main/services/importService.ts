@@ -3,14 +3,14 @@ import { AppError } from '@shared/errors'
 import { monthKey } from '@shared/dates'
 import type { ImportPickResult, ImportPreview, ImportResult } from '@shared/importTypes'
 import type { Transaction } from '@shared/types'
-import { splitDuplicates } from '@core/dedupe'
+import { splitDuplicates, type DuplicateSplit } from '@core/dedupe'
 import { buildTransactions } from '@core/import/buildTransactions'
-import { findUnknownAccounts } from '@core/import/knownAccounts'
+import { assertKnownAccounts, findUnknownAccounts } from '@core/import/knownAccounts'
 import { parseImportFile } from '@core/import/parseImportFile'
 import type { ParsedRow } from '@core/import/profile'
 import { markInternalTransfers } from '@core/internalTransfers'
 import { withRuleCategories } from '@core/rules'
-import type { DataRepository } from '../storage/repository'
+import type { DataRepository, GetRepository } from '../storage/repository'
 import { createPendingImports, type PendingImportsOptions } from './pendingImports'
 
 const previewRowLimit = 20
@@ -21,7 +21,7 @@ export type PickedFile = {
 }
 
 export type ImportServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
   chooseFile: () => Promise<PickedFile | null>
   pendingOptions?: PendingImportsOptions
 }
@@ -40,26 +40,21 @@ type PendingImport = {
   rows: ParsedRow[]
 }
 
-type Candidate = {
-  transactions: Transaction[]
-  ownIbans: string[]
-}
-
 export function createImportService(dependencies: ImportServiceDependencies): ImportService {
   const pending = createPendingImports<PendingImport>(dependencies.pendingOptions)
 
   const evaluate = async (token: string): Promise<ImportPickResult> => {
     const entry = pending.get(token)
     const repository = await dependencies.getRepository()
-    const candidates = await prepareCandidates(repository, entry, entry.file.name)
-    if ('unknownIbans' in candidates) {
-      return { kind: 'unknownAccounts', token, ibans: candidates.unknownIbans }
-    }
+    const ownIbans = await readOwnIbans(repository)
+    const unknownIbans = findUnknownAccounts(entry.rows, ownIbans)
+    if (unknownIbans.length > 0) return { kind: 'unknownAccounts', token, ibans: unknownIbans }
 
-    const { fresh, duplicates } = await splitAgainstStored(repository, candidates.transactions)
+    const candidates = await buildCandidates(repository, entry, ownIbans)
+    const { fresh, duplicates } = await splitAgainstStored(repository, candidates)
     return {
       kind: 'preview',
-      preview: buildPreview(token, entry, candidates.transactions, fresh, duplicates.length)
+      preview: buildPreview(token, entry, candidates, fresh, duplicates.length)
     }
   }
 
@@ -89,32 +84,31 @@ export function createImportService(dependencies: ImportServiceDependencies): Im
   }
 }
 
-async function prepareCandidates(
-  repository: DataRepository,
-  entry: PendingImport,
-  importedFrom: string
-): Promise<Candidate | { unknownIbans: string[] }> {
-  const ownIbans = (await repository.getSettings()).accounts.map((account) => account.iban)
-  const unknownIbans = findUnknownAccounts(entry.rows, ownIbans)
-  if (unknownIbans.length > 0) return { unknownIbans }
-
-  const built = buildTransactions(entry.rows, importedFrom)
-  const marked = markInternalTransfers(built, ownIbans)
-  return { transactions: withRuleCategories(marked, await repository.getRules()), ownIbans }
+async function readOwnIbans(repository: DataRepository): Promise<string[]> {
+  return (await repository.getSettings()).accounts.map((account) => account.iban)
 }
 
+// The transactions as they would be stored: with stable ids, transfer flags and rule categories.
+async function buildCandidates(
+  repository: DataRepository,
+  entry: PendingImport,
+  ownIbans: string[]
+): Promise<Transaction[]> {
+  const built = buildTransactions(entry.rows, entry.file.name)
+  const marked = markInternalTransfers(built, ownIbans)
+  return withRuleCategories(marked, await repository.getRules())
+}
+
+// Everything is checked again here, because the data may have changed since the preview.
 async function storeImport(
   repository: DataRepository,
   entry: PendingImport
 ): Promise<ImportResult> {
-  const provisional = await prepareCandidates(repository, entry, entry.file.name)
-  if ('unknownIbans' in provisional) {
-    throw new AppError('IMPORT_UNKNOWN_ACCOUNT', 'The file has unregistered accounts', {
-      ibans: provisional.unknownIbans
-    })
-  }
+  const ownIbans = await readOwnIbans(repository)
+  assertKnownAccounts(entry.rows, ownIbans)
 
-  const { fresh, duplicates } = await splitAgainstStored(repository, provisional.transactions)
+  const candidates = await buildCandidates(repository, entry, ownIbans)
+  const { fresh, duplicates } = await splitAgainstStored(repository, candidates)
   if (fresh.length === 0) return { addedCount: 0, duplicateCount: duplicates.length, months: [] }
 
   const storedName = await repository.storeImportFile(entry.file.name, entry.file.content)
@@ -126,7 +120,7 @@ async function storeImport(
 async function splitAgainstStored(
   repository: DataRepository,
   transactions: Transaction[]
-): Promise<{ fresh: Transaction[]; duplicates: Transaction[] }> {
+): Promise<DuplicateSplit<Transaction>> {
   const existingIds = new Set<string>()
   for (const key of uniqueMonths(transactions)) {
     for (const stored of await repository.getMonth(key)) existingIds.add(stored.id)

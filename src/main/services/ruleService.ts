@@ -10,7 +10,8 @@ import { createRuleMatcher, withRuleCategories } from '@core/rules'
 import { assertValidRules } from '@core/ruleValidation'
 import { userRulesFirst } from '@core/ruleOrder'
 import { completeStarterSet } from '@core/starterSet'
-import type { DataRepository } from '../storage/repository'
+import type { GetRepository } from '../storage/repository'
+import { rewriteMonths } from './monthRewrite'
 
 const exampleLimit = 3
 
@@ -23,7 +24,7 @@ export type RuleService = {
 }
 
 export type RuleServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
 }
 
 export function createRuleService({ getRepository }: RuleServiceDependencies): RuleService {
@@ -39,15 +40,12 @@ export function createRuleService({ getRepository }: RuleServiceDependencies): R
     reapply: async ({ dryRun }) => {
       const repository = await getRepository()
       const rules = await repository.getRules()
-      let changedCount = 0
-      for (const month of await repository.listMonths()) {
-        const stored = await repository.getMonth(month)
-        const next = withRuleCategories(stored, rules)
-        const changed = next.filter((transaction, index) => transaction !== stored[index]).length
-        if (changed === 0) continue
-        changedCount += changed
-        if (!dryRun) await repository.saveMonth(month, next)
-      }
+      const changedCount = await rewriteMonths(
+        repository,
+        await repository.listMonths(),
+        (stored) => withRuleCategories(stored, rules),
+        { dryRun }
+      )
       return { changedCount }
     },
     addDefaults: async () => {

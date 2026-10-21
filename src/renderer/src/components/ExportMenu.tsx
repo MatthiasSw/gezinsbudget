@@ -4,6 +4,7 @@ import type { TransactionQuery } from '@shared/transactionQuery'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
 import { useTransientMessage } from '../hooks/useTransientMessage'
+import { transactionCount } from '../plural'
 import { MoreMenu } from './MoreMenu'
 
 type ExportMenuProps = {
@@ -21,11 +22,7 @@ export function ExportMenu({ query, count }: ExportMenuProps): React.JSX.Element
     setError(undefined)
     try {
       const result = await api.transactions.export(query)
-      if (result) {
-        showMessage(
-          `${result.rowCount} ${result.rowCount === 1 ? 'transactie' : 'transacties'} geëxporteerd`
-        )
-      }
+      if (result) showMessage(`${transactionCount(result.rowCount)} geëxporteerd`)
     } catch (failure) {
       setError(failure)
     } finally {

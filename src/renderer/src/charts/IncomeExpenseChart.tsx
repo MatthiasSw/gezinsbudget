@@ -9,13 +9,20 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
-import { shortMonthName } from '@shared/dates'
-import { formatCents, formatCompactEuros } from '@shared/money'
+import { formatMonthLabel } from '@shared/dates'
+import { formatCents } from '@shared/money'
 import type { OverviewTable } from '@shared/overview'
 import { ChartCard } from './ChartCard'
 import { monthlyTotalsSeries } from './chartData'
 import { niceAxis } from './chartScale'
-import { axisTick, chartHeight, gridStroke, seriesColors, surfaceRing } from './chartStyle'
+import {
+  amountAxisProps,
+  chartHeight,
+  gridStroke,
+  monthAxisProps,
+  seriesColors,
+  surfaceRing
+} from './chartStyle'
 import { ChartTooltip } from './ChartTooltip'
 
 type IncomeExpenseChartProps = {
@@ -31,8 +38,6 @@ export function IncomeExpenseChart({ overview }: IncomeExpenseChartProps): React
     Math.min(...points.map((point) => point.netCents)),
     Math.max(...points.map((point) => Math.max(point.incomeCents, point.expenseCents)))
   )
-  const labelOf = (month: string): string =>
-    points.find((point) => point.month === month)?.label ?? month
 
   return (
     <ChartCard
@@ -56,26 +61,16 @@ export function IncomeExpenseChart({ overview }: IncomeExpenseChartProps): React
       <ResponsiveContainer width="100%" height={chartHeight}>
         <ComposedChart data={points} barGap={2} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke={gridStroke} />
-          <XAxis
-            dataKey="month"
-            tickFormatter={shortMonthName}
-            tick={axisTick}
-            axisLine={{ stroke: gridStroke }}
-            tickLine={false}
-          />
-          <YAxis
-            tickFormatter={formatCompactEuros}
-            domain={axis.domain}
-            ticks={axis.ticks}
-            tick={axisTick}
-            axisLine={false}
-            tickLine={false}
-            width={48}
-          />
+          <XAxis {...monthAxisProps} />
+          <YAxis {...amountAxisProps(axis)} />
           <Tooltip
             cursor={{ fill: 'var(--surface-soft)' }}
             content={({ active, payload, label }) => (
-              <ChartTooltip active={active} payload={payload} title={labelOf(String(label))} />
+              <ChartTooltip
+                active={active}
+                payload={payload}
+                title={formatMonthLabel(String(label))}
+              />
             )}
           />
           <Bar

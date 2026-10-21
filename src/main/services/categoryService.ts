@@ -2,7 +2,8 @@
 import { assertValidCategories } from '@shared/categoryTree'
 import type { Category } from '@shared/types'
 import { clearCategories } from '@core/categorize'
-import type { DataRepository } from '../storage/repository'
+import type { DataRepository, GetRepository } from '../storage/repository'
+import { rewriteMonths } from './monthRewrite'
 
 export type CategoryService = {
   get(): Promise<Category[]>
@@ -10,7 +11,7 @@ export type CategoryService = {
 }
 
 export type CategoryServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
 }
 
 export function createCategoryService({
@@ -45,11 +46,7 @@ async function detachRemovedCategories(
   const keptRules = rules.filter((rule) => !removedIds.has(rule.categoryId))
   if (keptRules.length !== rules.length) await repository.saveRules(keptRules)
 
-  for (const month of await repository.listMonths()) {
-    const stored = await repository.getMonth(month)
-    const cleared = clearCategories(stored, removedIds)
-    if (cleared.some((transaction, index) => transaction !== stored[index])) {
-      await repository.saveMonth(month, cleared)
-    }
-  }
+  await rewriteMonths(repository, await repository.listMonths(), (stored) =>
+    clearCategories(stored, removedIds)
+  )
 }

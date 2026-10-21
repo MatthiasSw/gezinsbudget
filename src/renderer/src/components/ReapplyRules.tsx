@@ -1,6 +1,7 @@
 // Button that applies the saved rules to existing transactions, with the result shown next to it.
 import { describeError } from '../errorMessages'
 import { useRuleReapply } from '../hooks/useRuleReapply'
+import { transactionCount } from '../plural'
 
 type ReapplyRulesProps = {
   refreshKey: number
@@ -9,7 +10,7 @@ type ReapplyRulesProps = {
 
 function applyLabel(pendingCount: number | null): string {
   if (!pendingCount) return 'Regels toepassen'
-  return `Regels toepassen op ${pendingCount} ${pendingCount === 1 ? 'transactie' : 'transacties'}`
+  return `Regels toepassen op ${transactionCount(pendingCount)}`
 }
 
 export function ReapplyRules({

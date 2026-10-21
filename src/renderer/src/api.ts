@@ -1,10 +1,21 @@
-// Renderer-side API: unwraps IPC results and throws AppError on failure.
+// Renderer-side API: the same calls as window.api, but each returns its value or throws AppError.
 import { AppError } from '@shared/errors'
 import type { IpcResult } from '@shared/ipc'
-import type { OverviewRequest } from '@shared/overview'
-import type { ReapplyRequest } from '@shared/ruleTypes'
-import type { SetCategoryRequest, TransactionQuery } from '@shared/transactionQuery'
-import type { Account, Budget, Category, Rule } from '@shared/types'
+
+type BridgeApi = Window['api']
+
+// Turns `(...args) => Promise<IpcResult<T>>` into `(...args) => Promise<T>` for every call of a group.
+type UnwrappedGroup<Group> = {
+  [Call in keyof Group]: Group[Call] extends (...args: infer Args) => Promise<IpcResult<infer T>>
+    ? (...args: Args) => Promise<T>
+    : never
+}
+
+type RendererApi = {
+  [Group in keyof BridgeApi]: UnwrappedGroup<BridgeApi[Group]>
+}
+
+type BridgeCall = (...args: unknown[]) => Promise<IpcResult<unknown>>
 
 async function unwrap<T>(pending: Promise<IpcResult<T>>): Promise<T> {
   const result = await pending
@@ -12,53 +23,19 @@ async function unwrap<T>(pending: Promise<IpcResult<T>>): Promise<T> {
   throw new AppError(result.error.code, result.error.message, result.error.details)
 }
 
-export const api = {
-  config: {
-    get: () => unwrap(window.api.config.get()),
-    chooseDataDir: () => unwrap(window.api.config.chooseDataDir())
-  },
-  settings: {
-    get: () => unwrap(window.api.settings.get()),
-    saveAccounts: (accounts: Account[]) => unwrap(window.api.settings.saveAccounts(accounts))
-  },
-  import: {
-    pick: () => unwrap(window.api.import.pick()),
-    resume: (token: string) => unwrap(window.api.import.resume(token)),
-    confirm: (token: string) => unwrap(window.api.import.confirm(token)),
-    cancel: (token: string) => unwrap(window.api.import.cancel(token))
-  },
-  transactions: {
-    query: (query: TransactionQuery) => unwrap(window.api.transactions.query(query)),
-    setCategory: (request: SetCategoryRequest) =>
-      unwrap(window.api.transactions.setCategory(request)),
-    export: (query: TransactionQuery) => unwrap(window.api.transactions.export(query))
-  },
-  categories: {
-    get: () => unwrap(window.api.categories.get()),
-    save: (categories: Category[]) => unwrap(window.api.categories.save(categories))
-  },
-  budgets: {
-    get: () => unwrap(window.api.budgets.get()),
-    save: (budgets: Budget[]) => unwrap(window.api.budgets.save(budgets))
-  },
-  rules: {
-    get: () => unwrap(window.api.rules.get()),
-    save: (rules: Rule[]) => unwrap(window.api.rules.save(rules)),
-    reapply: (request: ReapplyRequest) => unwrap(window.api.rules.reapply(request)),
-    test: (rule: Rule) => unwrap(window.api.rules.test(rule)),
-    addDefaults: () => unwrap(window.api.rules.addDefaults())
-  },
-  insights: {
-    get: (request: OverviewRequest) => unwrap(window.api.insights.get(request))
-  },
-  recurring: {
-    get: () => unwrap(window.api.recurring.get())
-  },
-  data: {
-    version: () => unwrap(window.api.data.version())
-  },
-  overview: {
-    get: (request: OverviewRequest) => unwrap(window.api.overview.get(request)),
-    years: () => unwrap(window.api.overview.years())
-  }
+function unwrapGroup(group: Record<string, BridgeCall>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(group).map(([name, call]) => [
+      name,
+      (...args: unknown[]) => unwrap(call(...args))
+    ])
+  )
 }
+
+// Built once at start-up, so every function keeps the same identity (hooks rely on that).
+export const api = Object.fromEntries(
+  Object.entries(window.api).map(([name, group]) => [
+    name,
+    unwrapGroup(group as Record<string, BridgeCall>)
+  ])
+) as RendererApi

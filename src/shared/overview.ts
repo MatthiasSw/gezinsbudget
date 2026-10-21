@@ -1,7 +1,7 @@
 // Types for the category-by-month overview shared by main and renderer.
-export type OverviewRequest = {
-  from: string
-  to: string
+import type { DateSpan } from './periods'
+
+export type OverviewRequest = DateSpan & {
   accountIds?: string[]
 }
 

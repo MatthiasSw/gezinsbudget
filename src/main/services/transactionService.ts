@@ -6,7 +6,8 @@ import type { Transaction } from '@shared/types'
 import { setManualCategory } from '@core/categorize'
 import { buildTransactionsCsv } from '@core/csvExport'
 import { filterTransactions } from '@core/transactionFilter'
-import type { DataRepository } from '../storage/repository'
+import type { DataRepository, GetRepository } from '../storage/repository'
+import { rewriteMonths } from './monthRewrite'
 
 export type SaveFile = (suggestedName: string, content: string) => Promise<boolean>
 
@@ -17,7 +18,7 @@ export type TransactionService = {
 }
 
 export type TransactionServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
   saveFile: SaveFile
 }
 
@@ -51,15 +52,10 @@ export function createTransactionService({
       const repository = await getRepository()
       await assertCategoryCanBeAssigned(repository, categoryId)
 
-      let updated = 0
-      for (const [month, ids] of groupIdsByMonth(refs)) {
-        const stored = await repository.getMonth(month)
-        const matched = stored.filter((transaction) => ids.has(transaction.id))
-        if (matched.length === 0) continue
-        await repository.saveMonth(month, setManualCategory(stored, ids, categoryId))
-        updated += matched.length
-      }
-      return updated
+      const idsByMonth = groupIdsByMonth(refs)
+      return rewriteMonths(repository, [...idsByMonth.keys()], (stored, month) =>
+        setManualCategory(stored, idsByMonth.get(month) ?? new Set(), categoryId)
+      )
     }
   }
 }

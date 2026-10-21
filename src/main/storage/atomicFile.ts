@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import { open, readFile, rename, unlink } from 'fs/promises'
 import { basename, dirname, join } from 'path'
 import { AppError } from '@shared/errors'
+import { hasErrorCode } from './fsErrors'
 
 const retryableRenameCodes = ['EPERM', 'EBUSY', 'EACCES']
 const maxRenameAttempts = 8
@@ -43,6 +44,7 @@ export async function readJsonIfExists(
   try {
     return JSON.parse(content)
   } catch {
+    // On a network share a read can catch a file halfway through being replaced; try once more.
     await dependencies.sleep(parseRetryDelayMs)
     return parseAfterRetry(filePath)
   }
@@ -62,7 +64,7 @@ async function readTextIfExists(filePath: string): Promise<string | undefined> {
   try {
     return await readFile(filePath, 'utf-8')
   } catch (error) {
-    if (isErrorWithCode(error, 'ENOENT')) return undefined
+    if (hasErrorCode(error, 'ENOENT')) return undefined
     throw error
   }
 }
@@ -100,11 +102,7 @@ async function renameWithRetry(
 }
 
 function isRetryableRenameError(error: unknown): boolean {
-  return retryableRenameCodes.some((code) => isErrorWithCode(error, code))
-}
-
-function isErrorWithCode(error: unknown, code: string): boolean {
-  return typeof error === 'object' && error !== null && (error as { code?: string }).code === code
+  return retryableRenameCodes.some((code) => hasErrorCode(error, code))
 }
 
 async function removeQuietly(path: string): Promise<void> {

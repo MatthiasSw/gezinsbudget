@@ -1,8 +1,8 @@
 // Knows how many transactions the saved rules would change and applies them on request.
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
-
-const messageDurationMs = 5000
+import { transactionCount } from '../plural'
+import { useTransientMessage } from './useTransientMessage'
 
 export function useRuleReapply(refreshKey: number): {
   pendingCount: number | null
@@ -13,7 +13,7 @@ export function useRuleReapply(refreshKey: number): {
 } {
   const [pendingCount, setPendingCount] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [message, showMessage] = useTransientMessage()
   const [error, setError] = useState<unknown>(undefined)
 
   useEffect(() => {
@@ -31,25 +31,19 @@ export function useRuleReapply(refreshKey: number): {
     }
   }, [refreshKey])
 
-  useEffect(() => {
-    if (message === null) return
-    const timer = setTimeout(() => setMessage(null), messageDurationMs)
-    return () => clearTimeout(timer)
-  }, [message])
-
   const apply = useCallback(async () => {
     setBusy(true)
     setError(undefined)
     try {
       const { changedCount } = await api.rules.reapply({ dryRun: false })
       setPendingCount(0)
-      setMessage(`${changedCount} ${changedCount === 1 ? 'transactie' : 'transacties'} bijgewerkt.`)
+      showMessage(`${transactionCount(changedCount)} bijgewerkt.`)
     } catch (caught) {
       setError(caught)
     } finally {
       setBusy(false)
     }
-  }, [])
+  }, [showMessage])
 
   return { pendingCount, busy, message, error, apply }
 }

@@ -1,9 +1,11 @@
 // Reads and writes all budget data in the data folder; the only place that knows the folder layout.
-import { access, mkdir, readdir } from 'fs/promises'
+import { access, mkdir } from 'fs/promises'
+import type { DateRange } from '@shared/periods'
 import type { AppSettings, Budget, Category, DataVersion, Rule, Transaction } from '@shared/types'
 import { completeStarterSet } from '@core/starterSet'
 import { bumpDataVersion, readDataVersion } from './dataVersion'
 import { createDataPaths, monthKeyFromFileName } from './dataPaths'
+import { readDirectoryIfExists } from './fsErrors'
 import type { FileKind } from './migrations'
 import { assertDirectoryAvailable, toAvailabilityError } from './storageAvailability'
 import { storeImportFile } from './importFileStore'
@@ -17,10 +19,7 @@ export type RepositoryOptions = {
   now?: () => Date
 }
 
-export type TransactionRange = {
-  from?: string
-  to?: string
-}
+export type TransactionRange = DateRange
 
 export type DataRepository = {
   init(): Promise<void>
@@ -40,6 +39,9 @@ export type DataRepository = {
   getDataVersion(): Promise<DataVersion | undefined>
   storeImportFile(originalName: string, content: Uint8Array): Promise<string>
 }
+
+// Services ask for the repository on every call, so a change of data folder is picked up at once.
+export type GetRepository = () => Promise<DataRepository>
 
 const emptySettings = (): AppSettings => ({ accounts: [] })
 
@@ -91,7 +93,7 @@ export function createDataRepository(options: RepositoryOptions): DataRepository
   }
 
   const readMonthKeys = async (): Promise<string[]> => {
-    const names = await listFileNames(paths.transactionsDir)
+    const names = await readDirectoryIfExists(paths.transactionsDir)
     return names
       .map(monthKeyFromFileName)
       .filter((key): key is string => key !== undefined)
@@ -99,7 +101,7 @@ export function createDataRepository(options: RepositoryOptions): DataRepository
   }
 
   const readUnrecognizedFiles = async (): Promise<string[]> => {
-    const names = await listFileNames(paths.transactionsDir)
+    const names = await readDirectoryIfExists(paths.transactionsDir)
     return names.filter(
       (name) => name.endsWith('.json') && !name.startsWith('.') && !monthKeyFromFileName(name)
     )
@@ -171,13 +173,4 @@ async function fileExists(path: string): Promise<boolean> {
     () => true,
     () => false
   )
-}
-
-async function listFileNames(directory: string): Promise<string[]> {
-  try {
-    return await readdir(directory)
-  } catch (error) {
-    if ((error as { code?: string }).code === 'ENOENT') return []
-    throw error
-  }
 }

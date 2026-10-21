@@ -1,6 +1,7 @@
 // Matches categorisation rules against transactions and applies the first matching rule.
 import { normalizeIban } from '@shared/iban'
 import type { Rule, Transaction } from '@shared/types'
+import { withoutCategory } from './categorize'
 
 export type TransactionMatcher = (transaction: Transaction) => boolean
 
@@ -9,16 +10,7 @@ export function createRuleMatcher(rule: Rule): TransactionMatcher {
   return (transaction) => readFields(transaction, rule.field).some(test)
 }
 
-export function matchRule(rule: Rule, transaction: Transaction): boolean {
-  return createRuleMatcher(rule)(transaction)
-}
-
-export function applyRules(transactions: Transaction[], rules: Rule[]): Transaction[] {
-  return withRuleCategories(transactions, rules).filter(
-    (transaction, index) => transaction !== transactions[index]
-  )
-}
-
+// Returns the same object for every transaction the rules leave unchanged.
 export function withRuleCategories(transactions: Transaction[], rules: Rule[]): Transaction[] {
   const matchers = rules
     .filter((rule) => rule.enabled)
@@ -39,11 +31,7 @@ function withRuleCategory(transaction: Transaction, rule: Rule): Transaction {
 }
 
 function withoutRuleCategory(transaction: Transaction): Transaction {
-  if (transaction.categorySource !== 'rule') return transaction
-  const { categoryId: removedCategory, categorySource: removedSource, ...rest } = transaction
-  void removedCategory
-  void removedSource
-  return rest
+  return transaction.categorySource === 'rule' ? withoutCategory(transaction) : transaction
 }
 
 function readFields(transaction: Transaction, field: Rule['field']): string[] {

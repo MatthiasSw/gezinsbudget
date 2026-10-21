@@ -4,7 +4,8 @@ import { isValidIban, normalizeIban } from '@shared/iban'
 import type { SaveAccountsResult } from '@shared/accountTypes'
 import type { Account, AppSettings } from '@shared/types'
 import { markInternalTransfers } from '@core/internalTransfers'
-import type { DataRepository } from '../storage/repository'
+import type { DataRepository, GetRepository } from '../storage/repository'
+import { rewriteMonths } from './monthRewrite'
 
 export type AccountService = {
   get(): Promise<AppSettings>
@@ -12,7 +13,7 @@ export type AccountService = {
 }
 
 export type AccountServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
 }
 
 export function createAccountService({
@@ -46,18 +47,9 @@ function cleanAccounts(accounts: Account[]): Account[] {
 }
 
 async function recomputeTransfers(repository: DataRepository, ownIbans: string[]): Promise<number> {
-  let changedTransactions = 0
-  for (const month of await repository.listMonths()) {
-    const stored = await repository.getMonth(month)
-    const next = markInternalTransfers(stored, ownIbans)
-    const changed = next.filter(
-      (transaction, index) => transaction.isInternalTransfer !== stored[index].isInternalTransfer
-    ).length
-    if (changed === 0) continue
-    changedTransactions += changed
-    await repository.saveMonth(month, next)
-  }
-  return changedTransactions
+  return rewriteMonths(repository, await repository.listMonths(), (stored) =>
+    markInternalTransfers(stored, ownIbans)
+  )
 }
 
 function invalid(message: string, iban: string): AppError {

@@ -25,23 +25,23 @@ describe('pending imports', () => {
       timeToLiveMs: 1000
     })
     const token = pending.add('file')
-    current = 999
-    expect(pending.get(token)).toBe('file')
     current = 1000
     expect(() => pending.get(token)).toThrow()
   })
 
-  it('extends the lifetime when an entry is replaced', () => {
+  it('extends the lifetime when an entry is used', () => {
     let current = 0
     const pending = createPendingImports<string>({
       now: () => new Date(current),
       timeToLiveMs: 1000
     })
-    const token = pending.add('old')
+    const token = pending.add('file')
     current = 900
-    pending.replace(token, 'new')
+    expect(pending.get(token)).toBe('file')
     current = 1500
-    expect(pending.get(token)).toBe('new')
+    expect(pending.get(token)).toBe('file')
+    current = 2500
+    expect(() => pending.get(token)).toThrow()
   })
 
   it('forgets removed entries', () => {

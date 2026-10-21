@@ -7,13 +7,14 @@ import type { RecurringSpend } from '@shared/recurringTypes'
 import type { Category } from '@shared/types'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
+import { drillDownFilters, type OpenTransactions } from '../filters'
 import { useAsyncData } from '../hooks/useAsyncData'
-import type { Filters } from './FilterBar'
+import { pluralize, pluralWord } from '../plural'
 import { InfoTip } from './InfoTip'
 
 type RecurringViewProps = {
   dataRevision: number
-  onOpenTransactions: (filters: Partial<Filters>) => void
+  onOpenTransactions: OpenTransactions
 }
 
 const recurringInfo =
@@ -41,14 +42,7 @@ export function RecurringView({
   const yearlyCents = sum(active, (item) => item.yearlyCents)
 
   const openTransactions = (item: RecurringSpend): void =>
-    onOpenTransactions({
-      from: '',
-      to: '',
-      accountId: '',
-      categoryId: '',
-      internal: 'hide',
-      search: item.counterparty
-    })
+    onOpenTransactions(drillDownFilters({ search: item.counterparty }))
 
   return (
     <section>
@@ -64,9 +58,9 @@ export function RecurringView({
       ) : (
         <>
           <p>
-            <strong>{active.length}</strong> {active.length === 1 ? 'uitgave' : 'uitgaven'} komen
-            nog terug, samen ongeveer <strong>{formatCents(monthlyCents)}</strong> per maand of{' '}
-            <strong>{formatCents(yearlyCents)}</strong> per jaar.
+            <strong>{active.length}</strong> {pluralWord(active.length, 'uitgave', 'uitgaven')}{' '}
+            komen nog terug, samen ongeveer <strong>{formatCents(monthlyCents)}</strong> per maand
+            of <strong>{formatCents(yearlyCents)}</strong> per jaar.
           </p>
           {stopped > 0 && (
             <label className="inlineLabel">
@@ -75,8 +69,8 @@ export function RecurringView({
                 checked={showStopped}
                 onChange={(event) => setShowStopped(event.target.checked)}
               />
-              Toon ook {stopped} {stopped === 1 ? 'uitgave' : 'uitgaven'} die gestopt{' '}
-              {stopped === 1 ? 'lijkt' : 'lijken'}
+              Toon ook {pluralize(stopped, 'uitgave', 'uitgaven')} die gestopt{' '}
+              {pluralWord(stopped, 'lijkt', 'lijken')}
             </label>
           )}
 

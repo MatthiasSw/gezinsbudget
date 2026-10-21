@@ -1,24 +1,27 @@
-// Turns period presets (this month, last year, ...) into inclusive ISO date ranges.
+// Turns period presets (this month, last year, ...), months and years into inclusive ISO date ranges.
+import { lastDayOfMonth, monthKey } from './dates'
+
 export type PeriodPreset = 'thisMonth' | 'lastMonth' | 'thisYear' | 'lastYear' | 'all'
 
-export type DateRange = {
-  from?: string
-  to?: string
+export type DateSpan = {
+  from: string
+  to: string
 }
+
+export type DateRange = Partial<DateSpan>
 
 export function presetRange(preset: PeriodPreset, today: string): DateRange {
   const year = Number(today.slice(0, 4))
-  const month = Number(today.slice(5, 7))
 
   switch (preset) {
     case 'thisMonth':
-      return monthRange(year, month)
+      return monthSpan(monthKey(today))
     case 'lastMonth':
-      return month === 1 ? monthRange(year - 1, 12) : monthRange(year, month - 1)
+      return monthSpan(previousMonthKey(today))
     case 'thisYear':
-      return yearRange(year)
+      return yearSpan(year)
     case 'lastYear':
-      return yearRange(year - 1)
+      return yearSpan(year - 1)
     case 'all':
       return {}
   }
@@ -30,20 +33,17 @@ export function todayAsIso(date: Date = new Date()): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
-function monthRange(year: number, month: number): DateRange {
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
-  const prefix = `${year}-${String(month).padStart(2, '0')}`
-  return { from: `${prefix}-01`, to: `${prefix}-${String(lastDay).padStart(2, '0')}` }
+export function monthSpan(key: string): DateSpan {
+  return { from: `${key}-01`, to: lastDayOfMonth(key) }
 }
 
-function yearRange(year: number): DateRange {
+export function yearSpan(year: number): DateSpan {
   return { from: `${year}-01-01`, to: `${year}-12-31` }
 }
 
-export function monthKeyRange(key: string): DateRange {
-  return monthRange(Number(key.slice(0, 4)), Number(key.slice(5, 7)))
-}
-
-export function yearRangeOf(year: number): DateRange {
-  return yearRange(year)
+function previousMonthKey(isoDate: string): string {
+  const year = Number(isoDate.slice(0, 4))
+  const month = Number(isoDate.slice(5, 7))
+  if (month === 1) return `${year - 1}-12`
+  return `${year}-${String(month - 1).padStart(2, '0')}`
 }

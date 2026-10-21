@@ -19,17 +19,16 @@ export type ProviderOptions = {
 }
 
 type OpenRepository = {
-  key: string
   repository: DataRepository
-  lock?: WriterLock
+  lock: WriterLock
 }
 
 export function createRepositoryProvider(options: ProviderOptions): RepositoryProvider {
-  let opening: { key: string; promise: Promise<OpenRepository> } | undefined
+  let current: { key: string; promise: Promise<OpenRepository> } | undefined
 
   const releaseLock = async (promise: Promise<OpenRepository> | undefined): Promise<void> => {
     const open = await promise?.catch(() => undefined)
-    await open?.lock?.release()
+    await open?.lock.release()
   }
 
   return {
@@ -37,21 +36,28 @@ export function createRepositoryProvider(options: ProviderOptions): RepositoryPr
       const { dataDir } = options.configStore.get()
       if (dataDir === null) throw new AppError('DATA_DIR_NOT_SET', 'No data folder is chosen')
 
-      if (opening?.key !== dataDir) {
-        await releaseLock(opening?.promise)
-        opening = { key: dataDir, promise: openRepository(dataDir, options) }
+      if (current?.key !== dataDir) {
+        // Replace the entry before awaiting anything, so calls made at the same time share
+        // one repository and one writer lock instead of each opening their own.
+        const previous = current?.promise
+        current = {
+          key: dataDir,
+          promise: releaseLock(previous).then(() => openRepository(dataDir, options))
+        }
       }
 
+      const attempt = current
       try {
-        return (await opening.promise).repository
+        return (await attempt.promise).repository
       } catch (error) {
-        opening = undefined
+        if (current === attempt) current = undefined
         throw error
       }
     },
     close: async () => {
-      await releaseLock(opening?.promise)
-      opening = undefined
+      const previous = current?.promise
+      current = undefined
+      await releaseLock(previous)
     }
   }
 }
@@ -75,5 +81,5 @@ async function openRepository(root: string, options: ProviderOptions): Promise<O
     await lock.release()
     throw error
   }
-  return { key: root, repository, lock }
+  return { repository, lock }
 }

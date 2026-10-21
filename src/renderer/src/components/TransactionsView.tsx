@@ -1,19 +1,22 @@
 // The transaction list: filters, selection, and assigning categories one by one or in bulk.
 import { useCallback, useMemo, useState } from 'react'
-import { presetRange, todayAsIso } from '@shared/periods'
-import type { TransactionQuery, TransactionRef } from '@shared/transactionQuery'
+import type { TransactionQuery } from '@shared/transactionQuery'
 import type { Transaction } from '@shared/types'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
+import { defaultFilters, type Filters } from '../filters'
+import { useAccounts } from '../hooks/useAccounts'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { useCategories } from '../hooks/useCategories'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useRuleOffer } from '../hooks/useRuleOffer'
+import { useSelection } from '../hooks/useSelection'
 import { defaultPageSize, pageSizeOptions, pageSlice } from '../pagination'
 import { defaultSort, nextSort, sortTransactions, type SortKey } from '../transactionSort'
-import { useRuleOffer } from '../hooks/useRuleOffer'
 import { CategorySelect } from './CategorySelect'
 import { ExportMenu } from './ExportMenu'
 import { FirstImportPrompt } from './FirstImportPrompt'
-import { FilterBar, type Filters } from './FilterBar'
+import { FilterBar } from './FilterBar'
 import { Pagination } from './Pagination'
 import { RuleOfferBanner } from './RuleOfferBanner'
 import { TransactionTable } from './TransactionTable'
@@ -24,23 +27,19 @@ const pageSizeMinimum = pageSizeOptions[0]
 type TransactionsViewProps = {
   dataRevision: number
   onImported: () => void
-  initialFilters?: Partial<Filters>
+  initialFilters?: Filters
 }
 
-function defaultFilters(): Filters {
-  const year = presetRange('thisYear', todayAsIso())
+// The search text comes in separately, because it follows the typing with a delay.
+function toQuery(filters: Omit<Filters, 'search'>, search: string): TransactionQuery {
   return {
-    from: year.from ?? '',
-    to: year.to ?? '',
-    accountId: '',
-    categoryId: '',
-    internal: 'hide',
-    search: ''
+    from: filters.from || undefined,
+    to: filters.to || undefined,
+    accountIds: filters.accountId ? [filters.accountId] : undefined,
+    categoryId: filters.categoryId || undefined,
+    search: search || undefined,
+    internal: filters.internal
   }
-}
-
-function toRef(transaction: Transaction): TransactionRef {
-  return { id: transaction.id, bookingDate: transaction.bookingDate }
 }
 
 export function TransactionsView({
@@ -48,11 +47,7 @@ export function TransactionsView({
   onImported,
   initialFilters
 }: TransactionsViewProps): React.JSX.Element {
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...defaultFilters(),
-    ...initialFilters
-  }))
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set())
+  const [filters, setFilters] = useState<Filters>(() => initialFilters ?? defaultFilters())
   const [actionError, setActionError] = useState<unknown>(undefined)
   const search = useDebouncedValue(filters.search, searchDelayMs)
   const [sort, setSort] = useState(defaultSort)
@@ -60,47 +55,37 @@ export function TransactionsView({
   const [pageSize, setPageSize] = useState(defaultPageSize)
   const ruleOffer = useRuleOffer()
 
-  const query = useMemo<TransactionQuery>(
-    () => ({
-      from: filters.from || undefined,
-      to: filters.to || undefined,
-      accountIds: filters.accountId ? [filters.accountId] : undefined,
-      categoryId: filters.categoryId || undefined,
-      search: search || undefined,
-      internal: filters.internal
-    }),
-    [filters.from, filters.to, filters.accountId, filters.categoryId, filters.internal, search]
+  const { from, to, accountId, categoryId, internal } = filters
+  const query = useMemo(
+    () => toQuery({ from, to, accountId, categoryId, internal }, search),
+    [from, to, accountId, categoryId, internal, search]
   )
   const loadTransactions = useCallback(() => api.transactions.query(query), [query])
 
   const transactions = useAsyncData(loadTransactions, dataRevision)
-  const categories = useAsyncData(api.categories.get, dataRevision)
-  const settings = useAsyncData(api.settings.get, dataRevision)
+  const categoryList = useCategories(dataRevision)
+  const accounts = useAccounts(dataRevision)
   const years = useAsyncData(api.overview.years, dataRevision)
   const nothingImported = years.state.status === 'ready' && years.state.data.length === 0
 
   const rows = transactions.state.status === 'ready' ? transactions.state.data : []
+  const selection = useSelection(rows)
+  const sortedRows = sortTransactions(rows, sort, accounts, categoryList)
+  const pageRows = pageSlice(sortedRows, page, pageSize)
 
-  const assign = async (refs: TransactionRef[], categoryId: string | null): Promise<void> => {
+  const assign = async (assigned: Transaction[], categoryId: string | null): Promise<void> => {
     try {
       setActionError(undefined)
+      const refs = assigned.map(({ id, bookingDate }) => ({ id, bookingDate }))
       await api.transactions.setCategory({ refs, categoryId })
-      const refIds = new Set(refs.map((ref) => ref.id))
-      await ruleOffer.propose(
-        rows.filter((row) => refIds.has(row.id)),
-        categoryId
-      )
-      setSelectedIds(new Set())
+      await ruleOffer.propose(assigned, categoryId)
+      selection.clear()
       transactions.reload()
     } catch (error) {
       setActionError(error)
     }
   }
 
-  const categoryList = categories.state.status === 'ready' ? categories.state.data : []
-  const accounts = settings.state.status === 'ready' ? settings.state.data.accounts : []
-  const sortedRows = sortTransactions(rows, sort, accounts, categoryList)
-  const pageRows = pageSlice(sortedRows, page, pageSize)
   const changeSort = (key: SortKey): void => {
     setSort(nextSort(sort, key))
     setPage(0)
@@ -108,25 +93,11 @@ export function TransactionsView({
   const changeFilters = (changes: Partial<Filters>): void => {
     setFilters({ ...filters, ...changes })
     setPage(0)
+    selection.clear()
   }
   const changePageSize = (size: number): void => {
     setPageSize(size)
     setPage(0)
-  }
-
-  const toggle = (id: string): void => {
-    const next = new Set(selectedIds)
-    if (!next.delete(id)) next.add(id)
-    setSelectedIds(next)
-  }
-  const toggleAll = (): void => {
-    const allSelected = pageRows.length > 0 && pageRows.every((row) => selectedIds.has(row.id))
-    const next = new Set(selectedIds)
-    for (const row of pageRows) {
-      if (allSelected) next.delete(row.id)
-      else next.add(row.id)
-    }
-    setSelectedIds(next)
   }
 
   if (nothingImported) return <FirstImportPrompt onImported={onImported} />
@@ -140,14 +111,11 @@ export function TransactionsView({
         onChange={changeFilters}
       />
 
-      {selectedIds.size > 0 && (
+      {selection.selectedRows.length > 0 && (
         <div className="bulkBar">
-          <strong>{selectedIds.size} geselecteerd</strong>
-          {selectedIds.size < rows.length && (
-            <button
-              className="secondary compact"
-              onClick={() => setSelectedIds(new Set(rows.map((row) => row.id)))}
-            >
+          <strong>{selection.selectedRows.length} geselecteerd</strong>
+          {selection.selectedRows.length < rows.length && (
+            <button className="secondary compact" onClick={selection.selectAll}>
               Alle {rows.length} selecteren
             </button>
           )}
@@ -155,9 +123,7 @@ export function TransactionsView({
             categories={categoryList}
             value={undefined}
             emptyLabel="Categorie kiezen voor selectie…"
-            onChange={(categoryId) =>
-              assign(rows.filter((row) => selectedIds.has(row.id)).map(toRef), categoryId)
-            }
+            onChange={(chosen) => assign(selection.selectedRows, chosen)}
           />
         </div>
       )}
@@ -196,10 +162,10 @@ export function TransactionsView({
           onSortChange={changeSort}
           accounts={accounts}
           categories={categoryList}
-          selectedIds={selectedIds}
-          onToggle={toggle}
-          onToggleAll={toggleAll}
-          onCategoryChange={(transaction, categoryId) => assign([toRef(transaction)], categoryId)}
+          selectedIds={selection.selectedIds}
+          onToggle={selection.toggle}
+          onToggleAll={() => selection.toggleAll(pageRows)}
+          onCategoryChange={(transaction, chosen) => assign([transaction], chosen)}
         />
       )}
       {rows.length > pageSizeMinimum && (

@@ -2,9 +2,9 @@
 import { categoryIcon } from '@shared/categoryIcons'
 import { flattenTree } from '@shared/categoryTree'
 import { monthKey, monthKeysBetween } from '@shared/dates'
-import { normalizeIban } from '@shared/iban'
 import type { MonthTotals, OverviewRequest, OverviewRow, OverviewTable } from '@shared/overview'
 import type { Category, Transaction } from '@shared/types'
+import { countedTransactions } from './countedTransactions'
 
 type Bucket = {
   perMonth: Record<string, number>
@@ -17,7 +17,7 @@ export function totalsByCategoryAndMonth(
   request: OverviewRequest
 ): OverviewTable {
   const months = monthKeysBetween(request.from, request.to)
-  const included = selectTransactions(transactions, request)
+  const included = countedTransactions(transactions, request, request.accountIds)
   const knownIds = new Set(categories.map((category) => category.id))
 
   const own = new Map<string | null, Bucket>()
@@ -30,17 +30,6 @@ export function totalsByCategoryAndMonth(
   const subtree = sumSubtrees(own, categories, months)
   const rows = buildRows(categories, subtree, own.get(null), months)
   return { months, rows, ...buildTotals(included, months) }
-}
-
-function selectTransactions(transactions: Transaction[], request: OverviewRequest): Transaction[] {
-  const accountIds = request.accountIds?.map(normalizeIban)
-  return transactions.filter(
-    (transaction) =>
-      !transaction.isInternalTransfer &&
-      transaction.bookingDate >= request.from &&
-      transaction.bookingDate <= request.to &&
-      (!accountIds?.length || accountIds.includes(transaction.accountId))
-  )
 }
 
 function addToBucket(

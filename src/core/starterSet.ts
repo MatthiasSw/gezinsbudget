@@ -1,6 +1,6 @@
 // The starter categories with the keywords of their default rules, and the logic to add or refresh what is missing.
 import { randomUUID } from 'crypto'
-import { defaultCategoryIcons } from '@shared/categoryIcons'
+import { categoryIcon } from '@shared/categoryIcons'
 import type { Category, Rule } from '@shared/types'
 import { userRulesFirst } from './ruleOrder'
 import { expenseCategories, incomeCategories, type StarterCategory } from './starterCategories'
@@ -44,10 +44,11 @@ export function completeStarterSet(
       (category) => category.name.trim().toLowerCase() === name.toLowerCase()
     )
     if (found) return found
-    const created: Category = { id: createId(), name, kind, icon: iconFor(name) }
-    categories.push(parentId === undefined ? created : { ...created, parentId })
+    const created: Category = { id: createId(), name, kind, icon: categoryIcon({ name }) }
+    if (parentId !== undefined) created.parentId = parentId
+    categories.push(created)
     addedCategoryNames.push(name)
-    return categories[categories.length - 1]
+    return created
   }
 
   const addRule = (category: Category, keywords: string): void => {
@@ -99,8 +100,4 @@ export function completeStarterSet(
     addedRuleCount,
     updatedRuleCount
   }
-}
-
-function iconFor(name: string): string {
-  return defaultCategoryIcons[name.toLowerCase()] ?? ''
 }

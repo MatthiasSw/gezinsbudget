@@ -1,23 +1,23 @@
 // Filters and sorts transactions for the list view.
 import { descendantIds } from '@shared/categoryTree'
 import { formatCents } from '@shared/money'
-import { normalizeIban } from '@shared/iban'
 import { normalizeText } from '@shared/text'
 import { uncategorizedFilter, type TransactionQuery } from '@shared/transactionQuery'
 import type { Category, Transaction } from '@shared/types'
+import { createAccountMatcher } from './countedTransactions'
 
 export function filterTransactions(
   transactions: Transaction[],
   query: TransactionQuery,
   categories: Category[]
 ): Transaction[] {
-  const accountIds = query.accountIds?.map(normalizeIban)
+  const isOnChosenAccount = createAccountMatcher(query.accountIds)
   const categoryIds = categoryIdsFor(query.categoryId, categories)
   const words = splitWords(query.search ?? '')
 
   return transactions
     .filter((transaction) => matchesInternal(transaction, query.internal))
-    .filter((transaction) => !accountIds?.length || accountIds.includes(transaction.accountId))
+    .filter(isOnChosenAccount)
     .filter((transaction) => !query.from || transaction.bookingDate >= query.from)
     .filter((transaction) => !query.to || transaction.bookingDate <= query.to)
     .filter((transaction) => matchesCategory(transaction, query.categoryId, categoryIds))
@@ -47,7 +47,7 @@ function matchesCategory(
 
 function matchesSearch(transaction: Transaction, words: string[]): boolean {
   if (words.length === 0) return true
-  const haystack = normalizeSearchText(searchableText(transaction))
+  const haystack = normalizeText(searchableText(transaction))
   return words.every((word) => haystack.includes(word))
 }
 
@@ -69,10 +69,8 @@ function searchableText(transaction: Transaction): string {
 }
 
 function splitWords(search: string): string[] {
-  return normalizeSearchText(search).split(/\s+/).filter(Boolean)
+  return normalizeText(search).split(/\s+/).filter(Boolean)
 }
-
-export const normalizeSearchText = normalizeText
 
 function newestFirst(a: Transaction, b: Transaction): number {
   return b.bookingDate.localeCompare(a.bookingDate) || a.id.localeCompare(b.id)

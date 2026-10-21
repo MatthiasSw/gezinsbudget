@@ -2,14 +2,14 @@
 import { todayAsIso } from '@shared/periods'
 import type { RecurringSpend } from '@shared/recurringTypes'
 import { detectRecurringSpend } from '@core/recurring'
-import type { DataRepository } from '../storage/repository'
+import type { GetRepository } from '../storage/repository'
 
 export type RecurringService = {
   get(): Promise<RecurringSpend[]>
 }
 
 export type RecurringServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
   today?: () => string
 }
 

@@ -24,7 +24,9 @@ export function useDraftSave<T>({ stored, save, validate, onSaved }: DraftSaveOp
   hasUnsavedChanges: boolean
 } {
   const [draft, setDraft] = useState<T | null>(null)
-  const [saved, setSaved] = useState<T | null>(null)
+  // What the last save returned, remembered with the stored value it replaced: once the parent
+  // loads a newer stored value, that one wins, so data changed elsewhere is never hidden.
+  const [saved, setSaved] = useState<{ value: T; replaced: T } | null>(null)
   const [status, setStatus] = useState<SaveStatus>({ kind: 'idle' })
   const draftRef = useRef<T | null>(null)
 
@@ -53,7 +55,7 @@ export function useDraftSave<T>({ stored, save, validate, onSaved }: DraftSaveOp
     setStatus({ kind: 'saving' })
     try {
       const persisted = await save(pending)
-      setSaved(persisted)
+      setSaved({ value: persisted, replaced: stored })
       if (draftRef.current === pending) {
         draftRef.current = null
         setDraft(null)
@@ -63,10 +65,12 @@ export function useDraftSave<T>({ stored, save, validate, onSaved }: DraftSaveOp
     } catch (error) {
       setStatus({ kind: 'error', error })
     }
-  }, [save, validate, onSaved])
+  }, [stored, save, validate, onSaved])
+
+  const latestSaved = saved !== null && saved.replaced === stored ? saved.value : stored
 
   return {
-    value: draft ?? saved ?? stored,
+    value: draft ?? latestSaved,
     change,
     saveDraft,
     discard,

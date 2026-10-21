@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import type { AddDefaultsResult } from '@shared/ruleTypes'
 import type { LocalConfig } from '@shared/types'
 import { useTransientMessage } from '../hooks/useTransientMessage'
+import { pluralize } from '../plural'
 import { AccountsView } from './AccountsView'
 import { InfoTip } from './InfoTip'
 import { BudgetsView } from './BudgetsView'
@@ -12,6 +13,7 @@ import { TabBar, type TabItem } from './TabBar'
 
 type SettingsViewProps = {
   config: LocalConfig
+  dataRevision: number
   onChooseDataDir: () => void
 }
 
@@ -32,10 +34,12 @@ const dataFolderInfo =
 
 function describeDefaults(result: AddDefaultsResult): string {
   const parts = [
-    result.addedRuleCount > 0 && plural(result.addedRuleCount, 'regel', 'regels', 'toegevoegd'),
-    result.updatedRuleCount > 0 && plural(result.updatedRuleCount, 'regel', 'regels', 'bijgewerkt'),
+    result.addedRuleCount > 0 &&
+      `${pluralize(result.addedRuleCount, 'regel', 'regels')} toegevoegd`,
+    result.updatedRuleCount > 0 &&
+      `${pluralize(result.updatedRuleCount, 'regel', 'regels')} bijgewerkt`,
     result.addedCategoryCount > 0 &&
-      plural(result.addedCategoryCount, 'categorie', 'categorieën', 'toegevoegd')
+      `${pluralize(result.addedCategoryCount, 'categorie', 'categorieën')} toegevoegd`
   ].filter(Boolean)
   if (parts.length === 0) return 'Alle standaardregels zijn al up-to-date. Er is niets gewijzigd.'
 
@@ -46,11 +50,11 @@ function describeDefaults(result: AddDefaultsResult): string {
   return `${parts.join(', ')}.${categories} Klik op Regels toepassen om ze op je transacties los te laten.`
 }
 
-function plural(count: number, one: string, many: string, verb: string): string {
-  return `${count} ${count === 1 ? one : many} ${verb}`
-}
-
-export function SettingsView({ config, onChooseDataDir }: SettingsViewProps): React.JSX.Element {
+export function SettingsView({
+  config,
+  dataRevision,
+  onChooseDataDir
+}: SettingsViewProps): React.JSX.Element {
   const [current, setCurrent] = useState<SectionId>('folder')
   const [categoriesRevision, setCategoriesRevision] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
@@ -89,7 +93,7 @@ export function SettingsView({ config, onChooseDataDir }: SettingsViewProps): Re
             </div>
           </section>
         )}
-        {pane('accounts', <AccountsView />)}
+        {pane('accounts', <AccountsView dataRevision={dataRevision} />)}
         {pane(
           'categories',
           <CategoriesView key={`categories-${reloadKey}`} onSaved={markCategoriesSaved} />

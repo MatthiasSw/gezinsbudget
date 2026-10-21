@@ -1,7 +1,7 @@
 // Reads and saves the budgets per category, ignoring budgets whose category no longer fits.
 import { assertValidBudgets, keepBudgetableBudgets } from '@shared/budgets'
 import type { Budget } from '@shared/types'
-import type { DataRepository } from '../storage/repository'
+import type { GetRepository } from '../storage/repository'
 
 export type BudgetService = {
   get(): Promise<Budget[]>
@@ -9,7 +9,7 @@ export type BudgetService = {
 }
 
 export type BudgetServiceDependencies = {
-  getRepository: () => Promise<DataRepository>
+  getRepository: GetRepository
 }
 
 export function createBudgetService({ getRepository }: BudgetServiceDependencies): BudgetService {

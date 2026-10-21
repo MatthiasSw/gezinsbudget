@@ -1,7 +1,7 @@
 // Main screen shown once a data folder is configured: top bar, side navigation and the selected page.
 import { useCallback, useState } from 'react'
 import type { LocalConfig } from '@shared/types'
-import type { Filters } from './FilterBar'
+import type { Filters } from '../filters'
 import { useDataFolderStatus } from '../hooks/useDataFolderStatus'
 import { ChartsView } from './ChartsView'
 import { DataFolderBlockedScreen } from './DataFolderBlockedScreen'
@@ -40,19 +40,14 @@ const footerPages: NavItem<Page>[] = [
   { id: 'settings', label: 'Instellingen', icon: <SettingsIcon /> }
 ]
 
-const pageTitles: Record<Page, string> = {
-  transactions: 'Transacties',
-  overview: 'Overzicht',
-  charts: 'Grafieken',
-  recurring: 'Terugkerend',
-  insights: 'Interessant',
-  settings: 'Instellingen'
+function pageTitle(page: Page): string {
+  return [...mainPages, ...footerPages].find((item) => item.id === page)?.label ?? ''
 }
 
 export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.JSX.Element {
   const [page, setPage] = useState<Page>('transactions')
   const [dataRevision, setDataRevision] = useState(0)
-  const [drillDown, setDrillDown] = useState<Partial<Filters> | undefined>(undefined)
+  const [drillDown, setDrillDown] = useState<Filters | undefined>(undefined)
   const markDataChanged = useCallback(() => setDataRevision((revision) => revision + 1), [])
   const folder = useDataFolderStatus(markDataChanged)
 
@@ -60,7 +55,7 @@ export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.
     setDrillDown(undefined)
     setPage(next)
   }
-  const openTransactions = (filters: Partial<Filters>): void => {
+  const openTransactions = (filters: Filters): void => {
     setDrillDown(filters)
     setPage('transactions')
   }
@@ -81,7 +76,7 @@ export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.
       <TopBar onImported={markDataChanged} />
       <SideNav items={mainPages} footerItems={footerPages} current={page} onSelect={selectPage} />
       <main>
-        <h1 className="pageTitle">{pageTitles[page]}</h1>
+        <h1 className="pageTitle">{pageTitle(page)}</h1>
         {page === 'transactions' && (
           <TransactionsView
             dataRevision={dataRevision}
@@ -99,7 +94,13 @@ export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.
         {page === 'insights' && (
           <InsightsView dataRevision={dataRevision} onOpenTransactions={openTransactions} />
         )}
-        {page === 'settings' && <SettingsView config={config} onChooseDataDir={onChooseDataDir} />}
+        {page === 'settings' && (
+          <SettingsView
+            config={config}
+            dataRevision={dataRevision}
+            onChooseDataDir={onChooseDataDir}
+          />
+        )}
       </main>
     </div>
   )

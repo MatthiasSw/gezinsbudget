@@ -1,15 +1,12 @@
 // Full-screen message when the data folder is unreachable or locked by a writer on another pc.
 import type { AppError } from '@shared/errors'
+import { lockHost } from '../errorMessages'
 
 type DataFolderBlockedScreenProps = {
   error: AppError
   dataDir: string | null
   onRetry: () => void
   onChooseDataDir: () => void
-}
-
-function lockHost(error: AppError): string | undefined {
-  return (error.details as { host?: string } | undefined)?.host
 }
 
 export function DataFolderBlockedScreen({
