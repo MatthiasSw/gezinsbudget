@@ -21,8 +21,8 @@ type CategoriesEditorProps = {
   onSaved: () => void
 }
 
-const excludedInfo =
-  'Transacties in een categorie die niet meetelt, tellen niet mee als inkomst of uitgave in het overzicht, de grafieken, de inzichten en de terugkerende uitgaven. Je ziet ze wel nog in de transacties. Voorbeeld: een parkeerticket dat je werkgever terugbetaalt. Zet de uitgave en de terugbetaling in dezelfde categorie, bijvoorbeeld Onkosten werkgever. Voor de terugbetaling maak je een regel op de mededeling, want je loon komt van dezelfde werkgever. Subcategorieën tellen ook niet mee.'
+const countsInfo =
+  'Transacties in een categorie waarvan Meetellen uitstaat, tellen niet mee als inkomst of uitgave in het overzicht, de grafieken, de inzichten en de terugkerende uitgaven. Je ziet ze wel nog in de transacties. Subcategorieën volgen de hoofdcategorie.'
 
 function categoryProblem(categories: Category[]): string | null {
   if (categories.some((category) => category.name.trim() === '')) {
@@ -79,7 +79,7 @@ function CategoriesEditor({ stored, onSaved }: CategoriesEditorProps): React.JSX
             <th>Soort</th>
             <th>Hoort bij</th>
             <th>
-              Telt niet mee <InfoTip text={excludedInfo} />
+              Meetellen <InfoTip text={countsInfo} />
             </th>
             <th></th>
           </tr>

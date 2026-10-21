@@ -195,6 +195,21 @@ describe('computeInsights', () => {
     expect(topExpenses[1]).toMatchObject({ amountCents: 80000, count: 1 })
   })
 
+  it('shows a recurring payment without counterparty once, labelled by its description', () => {
+    const loan = [1, 2, 3, 4].map((month) =>
+      tx(`2026-0${month}-02`, -122832, {
+        counterpartyName: undefined,
+        description: `BEDRAG VOOR DE AFBETALING VAN UW WOONKREDIET BE34 0753 9970 9590 REF. : 0800${month} VAL. 0${month}-01`
+      })
+    )
+    const { topExpenses } = computeInsights(loan, categories, request)
+    expect(topExpenses).toHaveLength(1)
+    expect(topExpenses[0]).toMatchObject({
+      counterparty: 'BEDRAG VOOR DE AFBETALING VAN UW WOONKREDIET',
+      count: 4
+    })
+  })
+
   it('counts only the occurrences inside the period of a recurring payment', () => {
     const subscription = ['2025-12-05', '2026-01-05', '2026-02-05', '2026-03-05'].map((date) =>
       tx(date, -1299, { counterpartyName: 'Streamdienst' })

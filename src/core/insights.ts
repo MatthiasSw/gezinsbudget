@@ -10,7 +10,7 @@ import type {
 import type { DateSpan } from '@shared/periods'
 import type { Category, Transaction } from '@shared/types'
 import { countedTransactions, withoutExcludedCategories } from './countedTransactions'
-import { counterpartyKey } from './counterpartyKey'
+import { counterpartyKey, counterpartyLabel } from './counterpartyKey'
 import { findRecurringSeries, type RecurringSeries } from './recurring'
 
 const topExpenseCount = 10
@@ -118,7 +118,7 @@ function topExpenses(spends: Spend[], seriesOf: Map<string, RecurringSeries>): T
     .map(({ biggest: { transaction, cents }, count }) => ({
       id: transaction.id,
       bookingDate: transaction.bookingDate,
-      counterparty: transaction.counterpartyName ?? transaction.counterpartyIban ?? '',
+      counterparty: counterpartyLabel(transaction),
       categoryId: transaction.categoryId,
       amountCents: cents,
       count

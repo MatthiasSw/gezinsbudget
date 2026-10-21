@@ -80,9 +80,9 @@ export function CategoryEditorRow({
       <td>
         <input
           type="checkbox"
-          aria-label={`${category.name} telt niet mee in totalen`}
-          checked={category.excludedFromTotals ?? false}
-          onChange={(event) => onChange(withExclusion(category, event.target.checked))}
+          aria-label={`${category.name} telt mee in totalen`}
+          checked={!category.excludedFromTotals}
+          onChange={(event) => onChange(withExclusion(category, !event.target.checked))}
         />
       </td>
       <td>

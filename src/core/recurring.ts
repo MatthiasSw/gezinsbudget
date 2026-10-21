@@ -1,7 +1,7 @@
 // Detects monthly recurring expenses: same counterparty, amounts within 10 percent, about a month apart; long-stopped ones are dropped.
 import type { RecurringSpend } from '@shared/recurringTypes'
 import type { Transaction } from '@shared/types'
-import { counterpartyKey } from './counterpartyKey'
+import { counterpartyLabel, recurrenceKey } from './counterpartyKey'
 
 const minOccurrences = 3
 const amountSpreadRatio = 11 / 9
@@ -42,7 +42,7 @@ function groupByCounterparty(transactions: Transaction[]): Map<string, Transacti
   const groups = new Map<string, Transaction[]>()
   for (const transaction of transactions) {
     if (transaction.amountCents >= 0 || transaction.isInternalTransfer) continue
-    const key = counterpartyKey(transaction)
+    const key = recurrenceKey(transaction)
     if (key === '') continue
     const group = groups.get(key)
     if (group) group.push(transaction)
@@ -77,7 +77,7 @@ function toRecurringSpend(key: string, sorted: Transaction[], today: string): Re
   const amountCents = medianAmount(sorted)
   return {
     key,
-    counterparty: last.counterpartyName ?? last.counterpartyIban ?? key,
+    counterparty: counterpartyLabel(last) || key,
     amountCents,
     yearlyCents: amountCents * 12,
     occurrences: sorted.length,

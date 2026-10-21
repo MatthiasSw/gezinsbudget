@@ -88,16 +88,8 @@ main {
   padding: 8px 32px 48px;
 }
 
-.pageHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  margin: 20px 0 4px;
-}
-
 .pageTitle {
-  margin: 0;
+  margin: 20px 0 4px;
   font-size: 1.5rem;
 }
 
