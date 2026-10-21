@@ -183,6 +183,41 @@ describe('computeInsights', () => {
     })
   })
 
+  it('shows a recurring payment once, with its biggest amount and how often it occurred', () => {
+    const mortgage = ['2026-01-02', '2026-02-02', '2026-03-02', '2026-04-02'].map((date, index) =>
+      tx(date, -(120000 + index * 100), { counterpartyName: 'Bank hypotheek' })
+    )
+    const holiday = tx('2026-03-10', -80000, { counterpartyName: 'Reisbureau' })
+    const { topExpenses } = computeInsights([...mortgage, holiday], categories, request)
+
+    expect(topExpenses.map((item) => item.counterparty)).toEqual(['Bank hypotheek', 'Reisbureau'])
+    expect(topExpenses[0]).toMatchObject({ amountCents: 120300, count: 4 })
+    expect(topExpenses[1]).toMatchObject({ amountCents: 80000, count: 1 })
+  })
+
+  it('counts only the occurrences inside the period of a recurring payment', () => {
+    const subscription = ['2025-12-05', '2026-01-05', '2026-02-05', '2026-03-05'].map((date) =>
+      tx(date, -1299, { counterpartyName: 'Streamdienst' })
+    )
+    const { topExpenses } = computeInsights(subscription, categories, request)
+    expect(topExpenses).toHaveLength(1)
+    expect(topExpenses[0].count).toBe(3)
+  })
+
+  it('leaves categories that do not count in the totals out of every insight', () => {
+    const withExcluded: Category[] = [
+      ...categories,
+      { id: 'work', name: 'Onkosten werkgever', kind: 'expense', excludedFromTotals: true }
+    ]
+    const transactions = [
+      tx('2026-01-10', -2200, { counterpartyName: 'Parking', categoryId: 'work' }),
+      tx('2026-01-11', -3000, { counterpartyName: 'Bakker' })
+    ]
+    const { topExpenses, topCounterparties } = computeInsights(transactions, withExcluded, request)
+    expect(topExpenses.map((item) => item.counterparty)).toEqual(['Bakker'])
+    expect(topCounterparties.map((item) => item.name)).toEqual(['Bakker'])
+  })
+
   it('filters on the chosen account', () => {
     const transactions = [
       tx('2026-01-01', -1000),

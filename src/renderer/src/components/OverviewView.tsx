@@ -8,6 +8,7 @@ import { describeError } from '../errorMessages'
 import { drillDownFilters, type OpenTransactions } from '../filters'
 import { useAccounts } from '../hooks/useAccounts'
 import { useAsyncData } from '../hooks/useAsyncData'
+import type { YearAccountSelection } from '../hooks/useYearAccountSelection'
 import { useYearChoice } from '../hooks/useYearChoice'
 import { useYearOverview } from '../hooks/useYearOverview'
 import { OverviewTable } from './OverviewTable'
@@ -18,15 +19,17 @@ const filterInfo =
 
 type OverviewViewProps = {
   dataRevision: number
+  selection: YearAccountSelection
   onOpenTransactions: OpenTransactions
 }
 
 export function OverviewView({
   dataRevision,
+  selection,
   onOpenTransactions
 }: OverviewViewProps): React.JSX.Element {
-  const { year, years, setYear } = useYearChoice(dataRevision)
-  const [accountId, setAccountId] = useState('')
+  const { year, years, setYear } = useYearChoice(dataRevision, selection)
+  const { accountId, setAccountId } = selection
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
   const overview = useYearOverview(year, accountId, dataRevision)
   const accounts = useAccounts(dataRevision)

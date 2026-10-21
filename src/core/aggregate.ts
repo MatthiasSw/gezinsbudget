@@ -1,4 +1,4 @@
-// Sums transactions per category and month; internal transfers never count.
+// Sums transactions per category and month; internal transfers and categories left out of the totals never count.
 import { categoryIcon } from '@shared/categoryIcons'
 import { flattenTree } from '@shared/categoryTree'
 import { monthKey, monthKeysBetween } from '@shared/dates'
@@ -17,7 +17,7 @@ export function totalsByCategoryAndMonth(
   request: OverviewRequest
 ): OverviewTable {
   const months = monthKeysBetween(request.from, request.to)
-  const included = countedTransactions(transactions, request, request.accountIds)
+  const included = countedTransactions(transactions, categories, request, request.accountIds)
   const knownIds = new Set(categories.map((category) => category.id))
 
   const own = new Map<string | null, Bucket>()

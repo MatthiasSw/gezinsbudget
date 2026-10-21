@@ -64,6 +64,17 @@ export function descendantIds(categories: Category[], rootId: string): string[] 
   return ids
 }
 
+// Ids of the categories flagged as not counting in totals, together with all their subcategories.
+export function excludedCategoryIds(categories: Category[]): Set<string> {
+  const excluded = new Set<string>()
+  for (const category of categories) {
+    if (category.excludedFromTotals) {
+      for (const id of descendantIds(categories, category.id)) excluded.add(id)
+    }
+  }
+  return excluded
+}
+
 export type TreeGuide = 'pass' | 'blank' | 'tee' | 'elbow'
 
 export function treeGuides(rows: CategoryRow[]): TreeGuide[][] {

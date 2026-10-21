@@ -1,4 +1,4 @@
-// Finds notable things in the spending of a period: facts, biggest expenses, counterparties and movers.
+// Finds notable things in the spending of a period: facts, biggest expenses (recurring ones once), counterparties and movers.
 import { lastDayOfMonth, monthKey, monthKeysBetween } from '@shared/dates'
 import type {
   CategoryMover,
@@ -9,8 +9,9 @@ import type {
 } from '@shared/insightTypes'
 import type { DateSpan } from '@shared/periods'
 import type { Category, Transaction } from '@shared/types'
-import { countedTransactions } from './countedTransactions'
+import { countedTransactions, withoutExcludedCategories } from './countedTransactions'
 import { counterpartyKey } from './counterpartyKey'
+import { findRecurringSeries, type RecurringSeries } from './recurring'
 
 const topExpenseCount = 10
 const topCounterpartyCount = 5
@@ -38,8 +39,13 @@ export function computeInsights(
   categories: Category[],
   request: InsightRequest
 ): Insights {
-  const current = countedTransactions(transactions, request.period, request.accountIds)
-  const previous = countedTransactions(transactions, request.previous, request.accountIds)
+  const current = countedTransactions(transactions, categories, request.period, request.accountIds)
+  const previous = countedTransactions(
+    transactions,
+    categories,
+    request.previous,
+    request.accountIds
+  )
   const spends = toSpends(current)
   const rootOf = rootCategoryFinder(categories)
   const currentByCategory = sumByRootCategory(spends, rootOf)
@@ -48,7 +54,10 @@ export function computeInsights(
 
   return {
     facts: buildFacts(current, spends, currentByCategory, request.period),
-    topExpenses: topExpenses(spends),
+    topExpenses: topExpenses(
+      spends,
+      recurringSeriesByTransaction(withoutExcludedCategories(transactions, categories))
+    ),
     topCounterparties: topCounterparties(spends),
     risers: movers.filter((mover) => mover.changeCents > 0).slice(0, moverCount),
     fallers: movers
@@ -100,22 +109,45 @@ function findMovers(current: Map<string, number>, previous: Map<string, number>)
     .sort((a, b) => b.changeCents - a.changeCents || a.categoryId.localeCompare(b.categoryId))
 }
 
-function topExpenses(spends: Spend[]): TopExpense[] {
-  return [...spends]
-    .sort(
-      (a, b) =>
-        b.cents - a.cents ||
-        b.transaction.bookingDate.localeCompare(a.transaction.bookingDate) ||
-        a.transaction.id.localeCompare(b.transaction.id)
-    )
+// A recurring payment takes one place in the list: its biggest occurrence, with how often it occurred.
+function topExpenses(spends: Spend[], seriesOf: Map<string, RecurringSeries>): TopExpense[] {
+  return groupRecurring(spends, seriesOf)
+    .map((group) => ({ biggest: [...group].sort(biggestFirst)[0], count: group.length }))
+    .sort((a, b) => biggestFirst(a.biggest, b.biggest))
     .slice(0, topExpenseCount)
-    .map(({ transaction, cents }) => ({
+    .map(({ biggest: { transaction, cents }, count }) => ({
       id: transaction.id,
       bookingDate: transaction.bookingDate,
       counterparty: transaction.counterpartyName ?? transaction.counterpartyIban ?? '',
       categoryId: transaction.categoryId,
-      amountCents: cents
+      amountCents: cents,
+      count
     }))
+}
+
+function groupRecurring(spends: Spend[], seriesOf: Map<string, RecurringSeries>): Spend[][] {
+  const groups = new Map<RecurringSeries | string, Spend[]>()
+  for (const spend of spends) {
+    const key = seriesOf.get(spend.transaction.id) ?? spend.transaction.id
+    groups.set(key, [...(groups.get(key) ?? []), spend])
+  }
+  return [...groups.values()]
+}
+
+function biggestFirst(a: Spend, b: Spend): number {
+  return (
+    b.cents - a.cents ||
+    b.transaction.bookingDate.localeCompare(a.transaction.bookingDate) ||
+    a.transaction.id.localeCompare(b.transaction.id)
+  )
+}
+
+function recurringSeriesByTransaction(transactions: Transaction[]): Map<string, RecurringSeries> {
+  const seriesOf = new Map<string, RecurringSeries>()
+  for (const series of findRecurringSeries(transactions)) {
+    for (const transaction of series.transactions) seriesOf.set(transaction.id, series)
+  }
+  return seriesOf
 }
 
 function groupByCounterparty(spends: Spend[]): TopCounterparty[] {

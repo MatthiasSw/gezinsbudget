@@ -1,4 +1,4 @@
-// Category manager: add, rename, choose an icon and parent, and delete; changes are saved with a button.
+// Category manager: add, rename, choose an icon and parent, leave a category out of the totals, and delete; changes are saved with a button.
 import { useState } from 'react'
 import { findTooDeepCategory, flattenTree, treeGuides } from '@shared/categoryTree'
 import type { Category } from '@shared/types'
@@ -9,6 +9,7 @@ import { useDraftSave } from '../hooks/useDraftSave'
 import { SaveBar } from './SaveBar'
 import { CategoryEditorRow } from './CategoryEditorRow'
 import { ConfirmDialog } from './ConfirmDialog'
+import { InfoTip } from './InfoTip'
 import { NewCategoryForm } from './NewCategoryForm'
 
 type CategoriesViewProps = {
@@ -19,6 +20,9 @@ type CategoriesEditorProps = {
   stored: Category[]
   onSaved: () => void
 }
+
+const excludedInfo =
+  'Transacties in een categorie die niet meetelt, tellen niet mee als inkomst of uitgave in het overzicht, de grafieken, de inzichten en de terugkerende uitgaven. Je ziet ze wel nog in de transacties. Voorbeeld: een parkeerticket dat je werkgever terugbetaalt. Zet de uitgave en de terugbetaling in dezelfde categorie, bijvoorbeeld Onkosten werkgever. Voor de terugbetaling maak je een regel op de mededeling, want je loon komt van dezelfde werkgever. Subcategorieën tellen ook niet mee.'
 
 function categoryProblem(categories: Category[]): string | null {
   if (categories.some((category) => category.name.trim() === '')) {
@@ -74,6 +78,9 @@ function CategoriesEditor({ stored, onSaved }: CategoriesEditorProps): React.JSX
             <th>Naam</th>
             <th>Soort</th>
             <th>Hoort bij</th>
+            <th>
+              Telt niet mee <InfoTip text={excludedInfo} />
+            </th>
             <th></th>
           </tr>
         </thead>

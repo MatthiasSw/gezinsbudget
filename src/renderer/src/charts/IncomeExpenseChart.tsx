@@ -1,4 +1,4 @@
-// Grouped bars for income and expenses per month, with the net result as a line.
+// Grouped bars for income and expenses per month, with the net result as a line; a click opens that month.
 import {
   Bar,
   CartesianGrid,
@@ -12,7 +12,7 @@ import {
 import { formatMonthLabel } from '@shared/dates'
 import { formatCents } from '@shared/money'
 import type { OverviewTable } from '@shared/overview'
-import { ChartCard } from './ChartCard'
+import { ChartCard, type OpenChartTarget } from './ChartCard'
 import { monthlyTotalsSeries } from './chartData'
 import { niceAxis } from './chartScale'
 import {
@@ -27,12 +27,16 @@ import { ChartTooltip } from './ChartTooltip'
 
 type IncomeExpenseChartProps = {
   overview: OverviewTable
+  onOpen: OpenChartTarget
 }
 
 export const incomeExpenseSectionId = 'chart-income-expense'
 const inkColor = 'var(--text)'
 
-export function IncomeExpenseChart({ overview }: IncomeExpenseChartProps): React.JSX.Element {
+export function IncomeExpenseChart({
+  overview,
+  onOpen
+}: IncomeExpenseChartProps): React.JSX.Element {
   const points = monthlyTotalsSeries(overview)
   const axis = niceAxis(
     Math.min(...points.map((point) => point.netCents)),
@@ -43,6 +47,7 @@ export function IncomeExpenseChart({ overview }: IncomeExpenseChartProps): React
     <ChartCard
       id={incomeExpenseSectionId}
       title="Inkomsten en uitgaven per maand"
+      subtitle="Klik op een maand om de transacties te bekijken."
       legend={[
         { label: 'Inkomsten', color: seriesColors[0], shape: 'bar' },
         { label: 'Uitgaven', color: seriesColors[1], shape: 'bar' },
@@ -59,7 +64,16 @@ export function IncomeExpenseChart({ overview }: IncomeExpenseChartProps): React
       }}
     >
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <ComposedChart data={points} barGap={2} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart
+          data={points}
+          barGap={2}
+          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          style={{ cursor: 'pointer' }}
+          onClick={(state) => {
+            const point = points[Number(state.activeIndex)]
+            if (point) onOpen({ month: point.month })
+          }}
+        >
           <CartesianGrid vertical={false} stroke={gridStroke} />
           <XAxis {...monthAxisProps} />
           <YAxis {...amountAxisProps(axis)} />

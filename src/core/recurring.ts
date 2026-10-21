@@ -12,19 +12,30 @@ const activeWithinDays = 45
 const forgottenAfterDays = 180
 const millisecondsPerDay = 24 * 60 * 60 * 1000
 
+// One run of monthly payments to the same counterparty for about the same amount, oldest first.
+export type RecurringSeries = {
+  key: string
+  transactions: Transaction[]
+}
+
 export function detectRecurringSpend(transactions: Transaction[], today: string): RecurringSpend[] {
-  const detected: RecurringSpend[] = []
+  return findRecurringSeries(transactions)
+    .map((series) => toRecurringSpend(series.key, series.transactions, today))
+    .filter((spend) => daysBetweenDates(spend.lastDate, today) <= forgottenAfterDays)
+    .sort((a, b) => b.yearlyCents - a.yearlyCents || a.key.localeCompare(b.key))
+}
+
+export function findRecurringSeries(transactions: Transaction[]): RecurringSeries[] {
+  const found: RecurringSeries[] = []
   for (const [key, group] of groupByCounterparty(transactions)) {
     for (const cluster of clusterByAmount(group)) {
       const sorted = [...cluster].sort(byDate)
       if (sorted.length >= minOccurrences && isMonthly(sorted)) {
-        detected.push(toRecurringSpend(key, sorted, today))
+        found.push({ key, transactions: sorted })
       }
     }
   }
-  return detected
-    .filter((spend) => daysBetweenDates(spend.lastDate, today) <= forgottenAfterDays)
-    .sort((a, b) => b.yearlyCents - a.yearlyCents || a.key.localeCompare(b.key))
+  return found
 }
 
 function groupByCounterparty(transactions: Transaction[]): Map<string, Transaction[]> {

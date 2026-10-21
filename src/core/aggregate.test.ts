@@ -168,3 +168,26 @@ describe('category icons in the overview', () => {
     expect(result.rows.map((item) => item.icon)).toEqual(['🛒', '🐶', ''])
   })
 })
+
+describe('categories that do not count in the totals', () => {
+  const withWork: Category[] = [
+    ...categories,
+    { id: 'work', name: 'Onkosten werkgever', kind: 'expense', excludedFromTotals: true },
+    { id: 'parking', name: 'Parkeren', kind: 'expense', parentId: 'work' }
+  ]
+  const parkingTransactions: Transaction[] = [
+    tx('p1', '2026-01-08', -2200, { categoryId: 'work' }),
+    tx('p2', '2026-01-09', -2200, { categoryId: 'parking' }),
+    tx('p3', '2026-01-20', 4400, { categoryId: 'work' }),
+    tx('shop', '2026-01-21', -1000, { categoryId: 'fun' })
+  ]
+  const result = totalsByCategoryAndMonth(parkingTransactions, withWork, request)
+
+  it('leaves them and their subcategories out of the rows', () => {
+    expect(result.rows.map((candidate) => candidate.categoryId)).toEqual(['fun'])
+  })
+
+  it('leaves them out of income and expenses', () => {
+    expect(result.totals).toEqual({ incomeCents: 0, expenseCents: 1000, netCents: -1000 })
+  })
+})

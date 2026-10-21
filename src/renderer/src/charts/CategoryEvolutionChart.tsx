@@ -1,4 +1,4 @@
-// Lines showing how the chosen categories develop month by month.
+// Lines showing how the chosen categories develop month by month; a click on a point opens that category and month.
 import { useState } from 'react'
 import {
   CartesianGrid,
@@ -15,7 +15,7 @@ import { formatCents } from '@shared/money'
 import type { OverviewTable } from '@shared/overview'
 import { SearchableSelect } from '../components/SearchableSelect'
 import type { SearchOption } from '../optionFilter'
-import { ChartCard } from './ChartCard'
+import { ChartCard, type OpenChartTarget } from './ChartCard'
 import { categoryEvolution, spendingByCategory, type CategoryEvolutionPoint } from './chartData'
 import { niceAxis } from './chartScale'
 import {
@@ -40,6 +40,36 @@ const defaultCategoryCount = 3
 
 type CategoryEvolutionChartProps = {
   overview: OverviewTable
+  onOpen: OpenChartTarget
+}
+
+// A dot of a line that opens the transactions of its category and month when clicked.
+type DotPosition = {
+  cx?: number
+  cy?: number
+  index: number
+}
+
+function clickableDot(
+  radius: number,
+  color: string,
+  onPick: (pointIndex: number) => void
+): (position: DotPosition) => React.JSX.Element {
+  function ClickableDot({ cx, cy, index }: DotPosition): React.JSX.Element {
+    return (
+      <circle
+        key={index}
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill={color}
+        {...surfaceRing}
+        cursor="pointer"
+        onClick={() => onPick(index)}
+      />
+    )
+  }
+  return ClickableDot
 }
 
 function defaultSelection(overview: OverviewTable): SelectedCategory[] {
@@ -48,7 +78,8 @@ function defaultSelection(overview: OverviewTable): SelectedCategory[] {
 }
 
 export function CategoryEvolutionChart({
-  overview
+  overview,
+  onOpen
 }: CategoryEvolutionChartProps): React.JSX.Element {
   const [selection, setSelection] = useState(() => defaultSelection(overview))
 
@@ -83,7 +114,7 @@ export function CategoryEvolutionChart({
     <ChartCard
       id={evolutionSectionId}
       title="Evolutie per categorie"
-      subtitle="Bedragen per maand, zonder teken. Een hoofdcategorie telt haar subcategorieën mee."
+      subtitle="Bedragen per maand, zonder teken. Een hoofdcategorie telt haar subcategorieën mee. Klik op een punt om de transacties te bekijken."
       controls={
         <div className="chipRow">
           {visible.map((item) => (
@@ -144,8 +175,12 @@ export function CategoryEvolutionChart({
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                dot={{ r: 4, fill: seriesColors[item.slot], ...surfaceRing }}
-                activeDot={{ r: 5, fill: seriesColors[item.slot], ...surfaceRing }}
+                dot={clickableDot(4, seriesColors[item.slot], (index) =>
+                  onOpen({ month: points[index]?.month, categoryId: item.categoryId })
+                )}
+                activeDot={clickableDot(5, seriesColors[item.slot], (index) =>
+                  onOpen({ month: points[index]?.month, categoryId: item.categoryId })
+                )}
                 isAnimationActive={false}
               />
             ))}

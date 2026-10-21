@@ -3,6 +3,14 @@ import { InfoTip } from '../components/InfoTip'
 import { ChartLegend, type LegendItem } from './ChartLegend'
 import { ChartTable, type ChartTableData } from './ChartTable'
 
+// What a click on a chart opens: the transactions of a month (the whole year without one) and category.
+export type ChartTarget = {
+  month?: string
+  categoryId?: string
+}
+
+export type OpenChartTarget = (target: ChartTarget) => void
+
 type ChartCardProps = {
   id: string
   title: string

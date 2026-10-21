@@ -1,12 +1,14 @@
 // Interessant tab: notable findings about the spending of a year, in a few small sections.
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import type { TopExpense } from '@shared/insightTypes'
+import { yearSpan } from '@shared/periods'
 import { api } from '../api'
 import { describeError } from '../errorMessages'
 import { drillDownFilters, type OpenTransactions } from '../filters'
 import { useAccounts } from '../hooks/useAccounts'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { useCategories } from '../hooks/useCategories'
+import type { YearAccountSelection } from '../hooks/useYearAccountSelection'
 import { useYearChoice } from '../hooks/useYearChoice'
 import { yearRequest } from '../hooks/useYearOverview'
 import { FactsCard, MoversCard, TopCounterpartiesCard, TopExpensesCard } from './InsightCards'
@@ -14,30 +16,29 @@ import { YearAccountFilter } from './YearAccountFilter'
 
 type InsightsViewProps = {
   dataRevision: number
+  selection: YearAccountSelection
   onOpenTransactions: OpenTransactions
 }
 
 export function InsightsView({
   dataRevision,
+  selection,
   onOpenTransactions
 }: InsightsViewProps): React.JSX.Element {
-  const { year, years, setYear } = useYearChoice(dataRevision)
-  const [accountId, setAccountId] = useState('')
+  const { year, years, setYear } = useYearChoice(dataRevision, selection)
+  const { accountId, setAccountId } = selection
 
   const load = useCallback(() => api.insights.get(yearRequest(year, accountId)), [year, accountId])
   const insights = useAsyncData(load, dataRevision)
   const categoryList = useCategories(dataRevision)
   const accounts = useAccounts(dataRevision)
 
-  const openExpense = (expense: TopExpense): void =>
-    onOpenTransactions(
-      drillDownFilters({
-        from: expense.bookingDate,
-        to: expense.bookingDate,
-        accountId,
-        search: expense.counterparty
-      })
-    )
+  // A recurring payment opens all payments of the year, a single one opens just that day.
+  const openExpense = (expense: TopExpense): void => {
+    const span =
+      expense.count > 1 ? yearSpan(year) : { from: expense.bookingDate, to: expense.bookingDate }
+    onOpenTransactions(drillDownFilters({ ...span, accountId, search: expense.counterparty }))
+  }
 
   return (
     <>
