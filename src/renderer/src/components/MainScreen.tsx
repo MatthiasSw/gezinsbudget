@@ -1,10 +1,11 @@
 // Main screen shown once a data folder is configured: top bar, side navigation and the selected page.
-// It also remembers where a click-through to the transactions came from, for the back button.
+// It also keeps the visited pages, for the back button in the top bar.
 import { useCallback, useState } from 'react'
 import type { LocalConfig } from '@shared/types'
 import type { Filters } from '../filters'
 import { useDataFolderStatus } from '../hooks/useDataFolderStatus'
 import { useYearAccountSelection } from '../hooks/useYearAccountSelection'
+import { canGoBack, goBack, openView, startHistory } from '../viewHistory'
 import { ChartsView } from './ChartsView'
 import { DataFolderBlockedScreen } from './DataFolderBlockedScreen'
 import {
@@ -47,24 +48,16 @@ function pageTitle(page: Page): string {
 }
 
 export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.JSX.Element {
-  const [page, setPage] = useState<Page>('transactions')
+  const [history, setHistory] = useState(() => startHistory<Page>('transactions'))
   const [dataRevision, setDataRevision] = useState(0)
-  const [drillDown, setDrillDown] = useState<Filters | undefined>(undefined)
-  const [cameFrom, setCameFrom] = useState<Page | undefined>(undefined)
   const selection = useYearAccountSelection()
   const markDataChanged = useCallback(() => setDataRevision((revision) => revision + 1), [])
   const folder = useDataFolderStatus(markDataChanged)
 
-  const selectPage = (next: Page): void => {
-    setDrillDown(undefined)
-    setCameFrom(undefined)
-    setPage(next)
-  }
-  const openTransactions = (filters: Filters): void => {
-    setDrillDown(filters)
-    setCameFrom(page)
-    setPage('transactions')
-  }
+  const { page, filters: drillDown } = history.current
+  const selectPage = (next: Page): void => setHistory(openView(history, next))
+  const openTransactions = (filters: Filters): void =>
+    setHistory(openView(history, 'transactions', filters))
 
   if (folder.status.kind === 'blocked') {
     return (
@@ -79,19 +72,17 @@ export function MainScreen({ config, onChooseDataDir }: MainScreenProps): React.
 
   return (
     <div className="appShell">
-      <TopBar onImported={markDataChanged} />
+      <TopBar
+        canGoBack={canGoBack(history)}
+        onBack={() => setHistory(goBack(history))}
+        onImported={markDataChanged}
+      />
       <SideNav items={mainPages} footerItems={footerPages} current={page} onSelect={selectPage} />
       <main>
-        <div className="pageHeader">
-          <h1 className="pageTitle">{pageTitle(page)}</h1>
-          {page === 'transactions' && cameFrom && (
-            <button className="secondary compact" onClick={() => selectPage(cameFrom)}>
-              ← Terug naar {pageTitle(cameFrom)}
-            </button>
-          )}
-        </div>
+        <h1 className="pageTitle">{pageTitle(page)}</h1>
         {page === 'transactions' && (
           <TransactionsView
+            key={history.current.id}
             dataRevision={dataRevision}
             initialFilters={drillDown}
             onImported={markDataChanged}

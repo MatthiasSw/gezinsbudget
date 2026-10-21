@@ -120,6 +120,31 @@ describe('detectRecurringSpend', () => {
     expect(detectRecurringSpend([...byIban, ...anonymous], '2026-03-20')).toHaveLength(1)
   })
 
+  it('recognises a payment without counterparty by its description, whatever its reference', () => {
+    const loan = [1, 2, 3, 4].map((month) =>
+      tx(`2026-0${month}-02`, -122832, {
+        counterpartyName: undefined,
+        description: `BEDRAG VOOR DE AFBETALING VAN UW WOONKREDIET BE34 0753 9970 9590 REF. : 08001413207${month} VAL. 0${month}-01`
+      })
+    )
+    const result = detectRecurringSpend(loan, '2026-04-20')
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({
+      counterparty: 'BEDRAG VOOR DE AFBETALING VAN UW WOONKREDIET',
+      amountCents: 122832,
+      occurrences: 4
+    })
+  })
+
+  it('does not join payments without counterparty that have a different description', () => {
+    const mixed = [
+      tx('2026-01-02', -5000, { counterpartyName: undefined, description: 'GELDOPNEMING' }),
+      tx('2026-02-02', -5000, { counterpartyName: undefined, description: 'BETALING ANDERE' }),
+      tx('2026-03-02', -5000, { counterpartyName: undefined, description: 'NOG IETS ANDERS' })
+    ]
+    expect(detectRecurringSpend(mixed, '2026-03-20')).toEqual([])
+  })
+
   it('uses the most common category and sorts by yearly cost', () => {
     const big = monthly([-9000, -9000, -9000], {
       counterpartyName: 'Huisbaas',
